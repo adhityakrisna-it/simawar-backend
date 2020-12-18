@@ -210,7 +210,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	private String getTemporaryProfileImageUrl(String username) {
 		// TODO Auto-generated method stub
-		return ServletUriComponentsBuilder.fromCurrentContextPath().path(FileConstant.DEFAULT_USER_IMAGE_PATH + username).toUriString();
+		//return ServletUriComponentsBuilder.fromCurrentContextPath().path(FileConstant.DEFAULT_USER_IMAGE_PATH + username).toUriString();
+		return FileConstant.DEFAULT_USER_IMAGE_PATH + username;
 	}
 
 	private String encodePassword(String password) {
