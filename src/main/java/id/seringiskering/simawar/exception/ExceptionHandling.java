@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 
 import id.seringiskering.simawar.domain.HttpResponse;
+import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
@@ -143,6 +144,11 @@ public class ExceptionHandling implements ErrorController {
     public ResponseEntity<HttpResponse> notFound404()  {
         return createHttpResponse(NOT_FOUND, "There is no mapping for this url");
     }    
+    
+    @ExceptionHandler(DataNotFoundException.class)
+    public ResponseEntity<HttpResponse> dataNotFound404(DataNotFoundException exception)  {
+        return createHttpResponse(NOT_FOUND, exception.getMessage());
+    }        
 
     
 //    @ExceptionHandler(NoHandlerFoundException.class)
