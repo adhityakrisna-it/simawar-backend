@@ -29,6 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.constant.UserImplConstant;
 import id.seringiskering.simawar.domain.UserPrincipal;
@@ -39,6 +42,7 @@ import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
@@ -104,7 +108,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	@Override
 	public User register(String firstName, String lastName, String username, String email)
-			throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException {
+			throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException, JsonProcessingException {
 		// TODO Auto-generated method stub
 		validateNewUsernameAndEmail(StringUtils.EMPTY, username, email);
 		User user = new User();
@@ -124,6 +128,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		{
 			user.setRole(Role.ROLE_SUPER_ADMIN.name());
 			user.setAuthorities(Role.ROLE_SUPER_ADMIN.getAuthorities());
+			
+			UserProfile userProfile = new UserProfile();
+			userProfile.setCluster("safir");
+			userProfile.setRt("rt2");
+			userProfile.setRw("rw21");
+			userProfile.setKecamatan("tapos");
+			userProfile.setKota("depok");
+			
+			ObjectMapper mapper = new ObjectMapper();
+			String jsonProfile = mapper.writeValueAsString(userProfile);
+			
+			user.setUserDataProfile(jsonProfile);
+			
 		} else {
 			user.setRole(Role.ROLE_USER.name());
 			user.setAuthorities(Role.ROLE_USER.getAuthorities());

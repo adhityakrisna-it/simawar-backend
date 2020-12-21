@@ -17,7 +17,8 @@ public class SecurityConstant {
 												"/user/register", 
 												"/user/image/**",
 												"/master/findAllMasterCluster",
-												"/master/findMasterBlokByClusterId/**"};
+												"/master/findMasterBlokByClusterId/**",
+												"/register/registerNewUser"};
 	//public static final String[] PUBLIC_URLS = {"**"};
 	
 }

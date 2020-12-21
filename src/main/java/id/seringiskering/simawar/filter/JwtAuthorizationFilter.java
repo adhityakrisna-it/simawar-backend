@@ -25,8 +25,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 	
 	private JWTTokenProvider jwtTokenProvider;
 	
+	private String validUsername;
 	
-	
+	public String getValidUsername() {
+		return validUsername;
+	}
+
 	public JwtAuthorizationFilter(JWTTokenProvider jwtTokenProvider) {
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
@@ -52,6 +56,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 				List<GrantedAuthority> authorities = jwtTokenProvider.getAuthorities(token);
 				Authentication authentication = jwtTokenProvider.getAuthentication(username, authorities, request);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
+				validUsername = username;
 			} else
 			{
 				SecurityContextHolder.clearContext();

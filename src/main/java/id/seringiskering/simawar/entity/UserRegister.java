@@ -1,15 +1,23 @@
 package id.seringiskering.simawar.entity;
 
 import java.io.Serializable;
-import javax.persistence.*;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Date;
 
 
 /**
@@ -26,7 +34,20 @@ public class UserRegister implements Serializable {
 
 	@Id
 	@Column(unique=true, nullable=false)
-	private String id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(name="blok_id", length=20)
+	private String blokId;
+
+	@Column(name="blok_identity", length=2)
+	private String blokIdentity;
+
+	@Column(name="blok_number")
+	private int blokNumber;
+
+	@Column(name="cluster_id", length=100)
+	private String clusterId;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="date_add", nullable=false)
@@ -34,7 +55,7 @@ public class UserRegister implements Serializable {
 	private Date dateAdd;
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="date_approve")
+	@Column(name="date_approve", nullable = true)
 	@UpdateTimestamp
 	private Date dateApprove;
 
@@ -50,21 +71,25 @@ public class UserRegister implements Serializable {
 	@Column(nullable=false, length=100)
 	private String password;
 
+	@Column(name="user_id", length=100)
+	private String userId;
+
 	@Column(nullable=false, length=20)
 	private String username;
+	
+	@Column(columnDefinition = "varchar(20) not null default 'entri'")
+	private String registerStatus = "entri";
+	
+	@Column(name="kelurahan_id", length=100)
+	private String kelurahanId;
 
-	//bi-directional many-to-one association to MasterBlok
-	@ManyToOne
-	@JoinColumns({
-		@JoinColumn(name="blok_id", referencedColumnName="blok_id"),
-		@JoinColumn(name="cluster_id", referencedColumnName="cluster_id")
-		})
-	private MasterBlok masterBlok;
+	@Column(name="rt_id")
+	private Integer rtId;
 
-	//bi-directional many-to-one association to User
-	@ManyToOne
-	@JoinColumn(name="user_id")
-	private User user;
-
-
+	@Column(name="rw_id")
+	private Integer rwId;	
+	
+	@Column(name="persil_id", length=100)
+	private String persilId;
+	
 }

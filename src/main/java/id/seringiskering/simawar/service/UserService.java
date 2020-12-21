@@ -7,6 +7,8 @@ import javax.mail.MessagingException;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
@@ -16,7 +18,7 @@ import id.seringiskering.simawar.exception.domain.UsernameExistException;
 
 
 public interface UserService {
-	User register(String firstName, String lastName, String username, String email) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException;
+	User register(String firstName, String lastName, String username, String email) throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException, JsonProcessingException;
 	
 	List<User> getUsers();
 	

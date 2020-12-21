@@ -15,6 +15,8 @@ import java.util.List;
 import javax.mail.MessagingException;
 
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.domain.UserPrincipal;
@@ -42,6 +47,8 @@ import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
+import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.service.UserService;
 import id.seringiskering.simawar.utility.JWTTokenProvider;
 
@@ -49,18 +56,23 @@ import id.seringiskering.simawar.utility.JWTTokenProvider;
 @RequestMapping(path = { "/", "/user" })
 public class UserController {
 	
+	private Logger LOGGER = LoggerFactory.getLogger(getClass());
+	
 	private static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
 	private static final String EMAIL_SENT = "Email with new password has been sent to ";
 	private UserService userService;
 	private AuthenticationManager authenticationManager;
 	private JWTTokenProvider jwtTokenProvider;
+	
+	private JwtAuthorizationFilter jwtAuthorizationFilter;
 
 	@Autowired
 	public UserController(UserService userService, AuthenticationManager authenticationManager,
-			JWTTokenProvider jwtTokenProvider) {
+			JWTTokenProvider jwtTokenProvider, JwtAuthorizationFilter jwtAuthorizationFilter) {
 		this.userService = userService;
 		this.authenticationManager = authenticationManager;
 		this.jwtTokenProvider = jwtTokenProvider;
+		this.jwtAuthorizationFilter = jwtAuthorizationFilter;
 	}
 
 	@PostMapping("/login")
@@ -74,7 +86,7 @@ public class UserController {
 
 	@PostMapping("/register")
 	public ResponseEntity<User> register(@RequestBody User user)
-			throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException {
+			throws UserNotFoundException, UsernameExistException, EmailExistException, MessagingException, JsonProcessingException {
 		User newUser = userService.register(user.getFirstName(), user.getLastName(), user.getUsername(),
 				user.getEmail());
 		return new ResponseEntity<>(newUser, HttpStatus.OK);
@@ -108,6 +120,23 @@ public class UserController {
 	@GetMapping("/find/{username}")
 	public ResponseEntity<User> getUser(@PathVariable("username") String username) {
 		User user = userService.findUserByUsername(username);
+		
+		/**
+		 *
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			UserProfile userProfile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+			System.out.println(userProfile.getRt() + "/" + userProfile.getRw());
+			
+		} catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
+
+		 */
+		
+		LOGGER.info("USER REQUEST JWT :" + jwtAuthorizationFilter.getValidUsername());
+		
 		return new ResponseEntity<> (user, HttpStatus.OK);
 	}
 
