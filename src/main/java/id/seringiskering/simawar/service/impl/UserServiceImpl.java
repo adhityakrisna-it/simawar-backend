@@ -224,6 +224,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		saveProfileImage(user, profileImage);
 		return user;
 	}	
+	
+
+	@Override
+	public User updateUserRole(String username, String role) {
+		// TODO Auto-generated method stub
+		User user = userRepository.findUserByUsername(username);
+        user.setRole(getRoleEnumName(role).name());
+        user.setAuthorities(getRoleEnumName(role).getAuthorities());        
+        userRepository.save(user);
+		return user;
+	}	
 
 	private String getTemporaryProfileImageUrl(String username) {
 		// TODO Auto-generated method stub

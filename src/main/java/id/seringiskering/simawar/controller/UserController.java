@@ -192,6 +192,13 @@ public class UserController {
 			return byteArrayOutputStream.toByteArray();
 		}
 	}
+	
+	@PostMapping("/updateUserRole/{username}/{role}")
+	public ResponseEntity<User> updateUserRole(@PathVariable("username")String username, @PathVariable("role") String role) {
+		User user = userService.updateUserRole(username, role);
+		return new ResponseEntity<User>(user, HttpStatus.OK);
+	}
+	
 
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub

@@ -1,23 +1,42 @@
 package id.seringiskering.simawar.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import id.seringiskering.simawar.domain.HttpResponse;
+import id.seringiskering.simawar.entity.UserRegister;
+import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
+import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
+import id.seringiskering.simawar.request.registrasi.UserApprovalRequest;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
+import id.seringiskering.simawar.response.register.UserRegisterResponse;
 import id.seringiskering.simawar.service.RegisterService;
 
 @RestController
 @RequestMapping(path = { "/register" })
 public class RegisterController {
+	
+	private Logger LOGGER = LoggerFactory.getLogger(getClass());
 	
 	private RegisterService registerService;
 	private JwtAuthorizationFilter jwtAuthorizationFilter;
@@ -32,6 +51,35 @@ public class RegisterController {
 	public ResponseEntity<HttpResponse> registerNewUser(@RequestBody UserRegistrationRequest request) throws UsernameExistException, EmailExistException {
 		registerService.registerNewUser(request);
 		return response(HttpStatus.OK, "Data registrasi sudah tersimpan");
+	}
+	
+	@PostMapping("/approveUserRegister")
+	@PreAuthorize("hasAnyAuthority('user:approval')") 
+	public ResponseEntity<HttpResponse> approveUserRegister(@RequestBody UserApprovalRequest request) throws NumberFormatException, JsonProcessingException, UnauthorizedException, DataNotFoundException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		registerService.approveUserRegister(username, request.getId(), request.getRole());
+		return response(HttpStatus.OK, "Registrasi sudah disetujui");
+	}
+	
+	@GetMapping("/findUserRegisterStatusEntri")
+	@PreAuthorize("hasAnyAuthority('user:approval')") 
+	public ResponseEntity<List<UserRegisterResponse>> findUserRegisterStatusEntri() throws JsonProcessingException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<UserRegister> userRegister = registerService.findUserRegisterForApprove(username);
+		
+		LOGGER.info("USER REGISTER RETURN SIZE : {} " , userRegister.size());
+		
+		List<UserRegisterResponse> response = new ArrayList<UserRegisterResponse>();
+		
+		for (UserRegister user : userRegister) {
+			UserRegisterResponse userRegisterResponse = new UserRegisterResponse();
+			BeanUtils.copyProperties(user, userRegisterResponse);
+			response.add(userRegisterResponse);
+		}
+		
+		return new ResponseEntity<> (response, HttpStatus.OK);
+		
+		
 	}
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
