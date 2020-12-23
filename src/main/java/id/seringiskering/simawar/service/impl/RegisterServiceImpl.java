@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import id.seringiskering.simawar.constant.Authority;
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
@@ -36,6 +37,8 @@ import id.seringiskering.simawar.service.RegisterService;
 
 @Service
 public class RegisterServiceImpl implements RegisterService {
+
+	private static final String GAGAL_APPROVAL_DISAPPROVAL_USER = "Gagal approval/disapproval user";
 
 	private static final String EMAIL_EXIST_REGISTER = "Email ini sedang dalam proses approval";
 
@@ -112,7 +115,7 @@ public class RegisterServiceImpl implements RegisterService {
 		
 		if (!userRegister.isPresent())
 		{
-			throw new DataNotFoundException("Gagal approval user");
+			throw new DataNotFoundException(GAGAL_APPROVAL_DISAPPROVAL_USER);
 		}
 		
 		User user = userRepository.findUserByUsername(username);
@@ -137,6 +140,31 @@ public class RegisterServiceImpl implements RegisterService {
 		userNew.setProfileImageUrl(getTemporaryProfileImageUrl(saveUserRegister.getUsername()));
 		userNew.setUserDataProfile(getUserProfile(role, saveUserRegister.getRtId(), saveUserRegister.getRwId(), saveUserRegister.getKelurahanId(), saveUserRegister.getClusterId()));
         userRepository.save(userNew);		
+		
+	}
+	
+
+	@Override
+	@Transactional
+	public void disapproveUserRegister(String username, Long id)
+			throws JsonProcessingException, UnauthorizedException, DataNotFoundException {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		validateUsernameAndId(username, id);
+		
+		Optional<UserRegister> userRegister = userRegisterRepository.findById(id);
+		
+		if (!userRegister.isPresent())
+		{
+			throw new DataNotFoundException(GAGAL_APPROVAL_DISAPPROVAL_USER);
+		}
+		
+		User user = userRepository.findUserByUsername(username);
+		
+		UserRegister saveUserRegister = userRegister.get();
+		saveUserRegister.setRegisterStatus("tolak");
+		saveUserRegister.setUserId(user.getUserId());
+		userRegisterRepository.save(saveUserRegister);
 		
 	}	
 	
@@ -207,7 +235,7 @@ public class RegisterServiceImpl implements RegisterService {
 		
 		List<UserRegister> lstUserRegister = getUserRegisterByUsername(username);
 		if (lstUserRegister.size()==0) {
-			throw new UnauthorizedException("Gagal approval user");
+			throw new UnauthorizedException(GAGAL_APPROVAL_DISAPPROVAL_USER);
 		}
 		
 		isIdUserRegisterExist(lstUserRegister, id);
@@ -222,7 +250,7 @@ public class RegisterServiceImpl implements RegisterService {
 				return;
 			}
 		}
-		throw new UnauthorizedException("Gagal approval user");
+		throw new UnauthorizedException(GAGAL_APPROVAL_DISAPPROVAL_USER);
 	}
 
 	private String encodePassword(String password) {
@@ -277,7 +305,6 @@ public class RegisterServiceImpl implements RegisterService {
 		// TODO Auto-generated method stub
 		return userRegisterRepository.findUserRegisterByEmailAndRegisterStatus(email, "entri");
 	}
-
 
 
 }
