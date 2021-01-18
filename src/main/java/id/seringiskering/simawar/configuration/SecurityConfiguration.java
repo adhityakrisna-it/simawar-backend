@@ -1,5 +1,7 @@
 package id.seringiskering.simawar.configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +26,7 @@ import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+	private Logger LOGGER = LoggerFactory.getLogger(getClass());
 	
 	private JwtAuthorizationFilter jwtAuthorization;
 	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
@@ -54,6 +57,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		// TODO Auto-generated method stub
+		LOGGER.info("SECURITY CONSTANT " + SecurityConstant.PUBLIC_URLS.toString());
+		
+		
 		http.csrf().disable().cors().and()
 		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 		.and().authorizeRequests().antMatchers(SecurityConstant.PUBLIC_URLS).permitAll()

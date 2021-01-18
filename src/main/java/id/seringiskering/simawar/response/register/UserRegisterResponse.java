@@ -16,5 +16,8 @@ public class UserRegisterResponse {
 		private String blokNumber;
 		private String blokIdentity;
 		private Long id;
-		
+		private String name;
+		private String registerStatus;
+		private String dateRegister;
+		private String address;
 }

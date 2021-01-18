@@ -92,4 +92,5 @@ public class UserRegister implements Serializable {
 	@Column(name="persil_id", length=100)
 	private String persilId;
 	
+	
 }

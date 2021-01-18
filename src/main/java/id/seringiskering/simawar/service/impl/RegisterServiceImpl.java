@@ -3,6 +3,8 @@ package id.seringiskering.simawar.service.impl;
 import static id.seringiskering.simawar.constant.UserImplConstant.EMAIL_ALREADY_EXIST;
 import static id.seringiskering.simawar.constant.UserImplConstant.USERNAME_ALREADY_EXIST;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -10,6 +12,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,11 +31,13 @@ import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.repository.UserRegisterRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
+import id.seringiskering.simawar.response.register.UserRegisterResponse;
 import id.seringiskering.simawar.service.RegisterService;
 
 @Service
@@ -78,6 +83,7 @@ public class RegisterServiceImpl implements RegisterService {
 		userRegister.setBlokNumber(request.getBlokNumber());
 		userRegister.setBlokIdentity(request.getBlokIdentity());
 		userRegister.setPassword(encodePassword(request.getPassword()));
+		userRegister.setBlokId(request.getBlokId());
 		
 		List<Persil> persil = persilRepository.findPersilByClusterIdAndBlokIdAndBlokNumberAndBlokIdentity
 											(request.getClusterId(), 
@@ -91,6 +97,7 @@ public class RegisterServiceImpl implements RegisterService {
 			userRegister.setRwId(p.getRwId());
 			userRegister.setPersilId(p.getPersilId());
 			userRegister.setKelurahanId(p.getKelurahanId());
+			userRegister.setBlokId(p.getBlokId());
 		}
 		
 		userRegisterRepository.save(userRegister);
@@ -221,7 +228,7 @@ public class RegisterServiceImpl implements RegisterService {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
 			return userRegister;
 		} else if (user.getRole().equals("PENGURUS_RW_AUTHORITIES")) {
-			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRw());
+			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
 			return userRegister;
 		} else {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndClusterId("entri", userProfile.getCluster());
@@ -304,6 +311,44 @@ public class RegisterServiceImpl implements RegisterService {
 	private UserRegister findUserRegisterByEmail(String email) {
 		// TODO Auto-generated method stub
 		return userRegisterRepository.findUserRegisterByEmailAndRegisterStatus(email, "entri");
+	}
+
+	@Override
+	public List<UserRegisterResponse> findUserRegisterForApproval(String username) throws JsonProcessingException {
+		// TODO Auto-generated method stub
+		User user = userRepository.findUserByUsername(username);
+		ObjectMapper mapper = new ObjectMapper();
+		UserProfile userProfile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+		
+		List<UserRegister> userRegister;
+		if (user.getRole().equals("PENGURUS_RT_AUTHORITIES")) {
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
+		} else if (user.getRole().equals("PENGURUS_RW_AUTHORITIES")) {
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
+		} else {
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndClusterId("entri", userProfile.getCluster());
+		}
+
+		List<UserRegisterResponse> response = new ArrayList<UserRegisterResponse>();
+		
+		for (UserRegister userreg : userRegister) {
+			UserRegisterResponse userRegisterResponse = new UserRegisterResponse();
+			BeanUtils.copyProperties(userreg, userRegisterResponse);
+			userRegisterResponse.setName(userreg.getFirstName() + " " + userreg.getLastName());
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			userRegisterResponse.setDateRegister(sdf.format(userreg.getDateAdd()));
+			userRegisterResponse.setAddress(userreg.getClusterId() + 
+												" " + 
+												StringManipulation.isNull(userreg.getBlokId(),"") + 
+												" " + 
+												userreg.getBlokNumber() + 
+												StringManipulation.isNull(userreg.getBlokIdentity(), "") );
+			
+			response.add(userRegisterResponse);
+		}
+		
+		return response;
+		
 	}
 
 

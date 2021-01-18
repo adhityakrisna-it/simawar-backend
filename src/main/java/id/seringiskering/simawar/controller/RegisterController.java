@@ -1,5 +1,6 @@
 package id.seringiskering.simawar.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,19 +75,9 @@ public class RegisterController {
 	@PreAuthorize("hasAnyAuthority('user:approval')") 
 	public ResponseEntity<List<UserRegisterResponse>> findUserRegisterStatusEntri() throws JsonProcessingException {
 		String username = jwtAuthorizationFilter.getValidUsername();
-		List<UserRegister> userRegister = registerService.findUserRegisterForApprove(username);
+		List<UserRegisterResponse> userRegister = registerService.findUserRegisterForApproval(username);
 		
-		LOGGER.info("USER REGISTER RETURN SIZE : {} " , userRegister.size());
-		
-		List<UserRegisterResponse> response = new ArrayList<UserRegisterResponse>();
-		
-		for (UserRegister user : userRegister) {
-			UserRegisterResponse userRegisterResponse = new UserRegisterResponse();
-			BeanUtils.copyProperties(user, userRegisterResponse);
-			response.add(userRegisterResponse);
-		}
-		
-		return new ResponseEntity<> (response, HttpStatus.OK);
+		return new ResponseEntity<> (userRegister, HttpStatus.OK);
 		
 		
 	}

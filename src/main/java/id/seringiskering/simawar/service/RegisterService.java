@@ -10,11 +10,13 @@ import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
+import id.seringiskering.simawar.response.register.UserRegisterResponse;
 
 public interface RegisterService {
 	
 	void registerNewUser(UserRegistrationRequest request) throws UsernameExistException, EmailExistException; 
 	List<UserRegister> findUserRegisterForApprove(String username) throws  JsonProcessingException;
+	List<UserRegisterResponse> findUserRegisterForApproval(String username) throws  JsonProcessingException;
 	void approveUserRegister(String username, Long id, String role) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
 	void disapproveUserRegister(String username, Long id) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
 
