@@ -16,5 +16,6 @@ public class UserRegistrationRequest {
 	private int blokNumber; 
 	private String blokIdentity;
 	private String password;
+	private String homeNumber;
 	
 }

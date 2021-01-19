@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import id.seringiskering.simawar.entity.MasterCluster;
+import id.seringiskering.simawar.entity.MasterRole;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
+import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.response.master.MasterBlokResponse;
 import id.seringiskering.simawar.service.MasterService;
 
@@ -20,10 +22,13 @@ import id.seringiskering.simawar.service.MasterService;
 public class MasterController {
 	
 	private MasterService masterService;
+	private JwtAuthorizationFilter jwtAuthorizationFilter;
 
 	@Autowired
-	public MasterController(MasterService masterService) {
+	public MasterController(MasterService masterService,
+			JwtAuthorizationFilter jwtAuthorizationFilter) {
 		this.masterService = masterService;
+		this.jwtAuthorizationFilter = jwtAuthorizationFilter;
 	}
 	
 	@GetMapping("/findAllMasterCluster")
@@ -38,6 +43,11 @@ public class MasterController {
 		return new ResponseEntity<> (masterBlok, HttpStatus.OK);
 	}
 	
-	
+	@GetMapping("/findMasterRole")
+	public ResponseEntity<List<MasterRole>> findMasterRole() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<MasterRole> masterRole = masterService.findAllMasterRoleByUsername(username);
+		return new ResponseEntity<List<MasterRole>>(masterRole, HttpStatus.OK);
+	}
 
 }

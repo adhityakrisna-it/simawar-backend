@@ -13,5 +13,9 @@ public class UserProfile {
 	private String kelurahan;
 	private String kecamatan;
 	private String kota;
+	private String nomor;
+	private String nomorTambahan;
+	private String blok;
+	private String persilId;
 	
 }

@@ -9,6 +9,12 @@ public class UserApprovalRequest {
 
 	private Long id;
 	private String role;
-	private String familyId;		
-	
+	private String familyId;
+	private String persilId;
+	private String blok;
+	private String nomor;
+	private String clusterId;
+	private String blokId;
+	private String blokNumber;
+	private String blokIdentity;
 }

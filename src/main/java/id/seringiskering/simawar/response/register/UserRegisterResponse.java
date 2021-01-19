@@ -13,7 +13,7 @@ public class UserRegisterResponse {
 		private String username;
 		private String clusterId;
 		private String blokId;
-		private String blokNumber;
+		private int blokNumber;
 		private String blokIdentity;
 		private Long id;
 		private String name;

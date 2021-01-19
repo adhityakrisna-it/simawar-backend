@@ -74,22 +74,27 @@ public class RegisterServiceImpl implements RegisterService {
 		// TODO Auto-generated method stub		
 		validateEntriNewUsernameAndEmail(request.getUsername(), request.getEmail());
 		
+		String[] homeNumber = parseHomeNumber(request.getHomeNumber());
+		Integer blokNumber = Integer.parseInt(homeNumber[0]);
+		String blokIdentity = homeNumber[1];
+		
 		UserRegister userRegister = new UserRegister();
 		userRegister.setFirstName(request.getFirstName());
 		userRegister.setLastName(request.getLastName());
 		userRegister.setUsername(request.getUsername());
 		userRegister.setEmail(request.getEmail());
 		userRegister.setClusterId(request.getClusterId());
-		userRegister.setBlokNumber(request.getBlokNumber());
-		userRegister.setBlokIdentity(request.getBlokIdentity());
+		userRegister.setBlokNumber(blokNumber);
+		userRegister.setBlokIdentity(blokIdentity);
 		userRegister.setPassword(encodePassword(request.getPassword()));
 		userRegister.setBlokId(request.getBlokId());
+		userRegister.setHomeNumber(request.getHomeNumber());
 		
 		List<Persil> persil = persilRepository.findPersilByClusterIdAndBlokIdAndBlokNumberAndBlokIdentity
 											(request.getClusterId(), 
 													request.getBlokId(), 
-													request.getBlokNumber(), 
-													request.getBlokIdentity());
+													blokNumber, 
+													blokIdentity);
 		
 		if (persil.size() > 0) {
 			Persil p = persil.get(0);
@@ -112,7 +117,7 @@ public class RegisterServiceImpl implements RegisterService {
 	
 	@Override
 	@Transactional
-	public void approveUserRegister(String username, Long id, String role) 
+	public void approveUserRegister(String username, Long id, String role, String cluster, String blok, String nomor, String nomorTambahan) 
 				throws JsonProcessingException, UnauthorizedException, DataNotFoundException 
 	{
 		// TODO Auto-generated method stub
@@ -145,7 +150,18 @@ public class RegisterServiceImpl implements RegisterService {
 		userNew.setRole(getRoleEnumName(role).name());
 		userNew.setAuthorities(getRoleEnumName(role).getAuthorities());        
 		userNew.setProfileImageUrl(getTemporaryProfileImageUrl(saveUserRegister.getUsername()));
-		userNew.setUserDataProfile(getUserProfile(role, saveUserRegister.getRtId(), saveUserRegister.getRwId(), saveUserRegister.getKelurahanId(), saveUserRegister.getClusterId()));
+		userNew.setUserDataProfile(
+				getUserProfile(
+						role, 
+						saveUserRegister.getRtId(), 
+						saveUserRegister.getRwId(), 
+						saveUserRegister.getKelurahanId(), 
+						cluster,
+						blok,
+						nomor,
+						nomorTambahan
+						)
+				);
         userRepository.save(userNew);		
 		
 	}
@@ -175,7 +191,10 @@ public class RegisterServiceImpl implements RegisterService {
 		
 	}	
 	
-	private String getUserProfile(String role, Integer rtId, Integer rwId, String kelurahanId, String clusterId) throws JsonProcessingException {
+	private String getUserProfile(String role, Integer rtId, Integer rwId, 
+								  String kelurahanId, String clusterId, 
+								  String blok, String nomor, String nomorTambahan) throws JsonProcessingException {
+		
 		UserProfile userProfile = new UserProfile();
 		
 		if (role.equals("ROLE_USER")) {
@@ -183,18 +202,31 @@ public class RegisterServiceImpl implements RegisterService {
 			userProfile.setRt(String.valueOf(rtId));
 			userProfile.setRw(String.valueOf(rtId));
 			userProfile.setKelurahan(kelurahanId);
+			userProfile.setBlok(blok);
+			userProfile.setNomor(nomor);
 		} else if (role.equals("ROLE_SUPER_ADMIN")) {
 			userProfile.setCluster("ALL");
 			userProfile.setRt("ALL");
 			userProfile.setRw("ALL");
 			userProfile.setKelurahan("ALL");
+			userProfile.setBlok(blok);
+			userProfile.setNomor(nomor);
+		} else if (role.equals("ROLE_WARGA")) {
+			userProfile.setCluster(clusterId);
+			userProfile.setRt("ALL");
+			userProfile.setRw("ALL");
+			userProfile.setKelurahan("ALL");
+			userProfile.setBlok(blok);
+			userProfile.setNomor(nomor);
+			userProfile.setNomorTambahan(nomorTambahan);
 		}
 		else {
 			userProfile.setCluster(clusterId);
 			userProfile.setRt(String.valueOf(rtId));
 			userProfile.setRw(String.valueOf(rwId));
 			userProfile.setKelurahan(kelurahanId);
-			
+			userProfile.setBlok(blok);
+			userProfile.setNomor(nomor);
 		}
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -230,7 +262,10 @@ public class RegisterServiceImpl implements RegisterService {
 		} else if (user.getRole().equals("PENGURUS_RW_AUTHORITIES")) {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
 			return userRegister;
-		} else {
+		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
+			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatus("entri");
+			return userRegister;
+		}else {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndClusterId("entri", userProfile.getCluster());
 			return userRegister;
 		}
@@ -350,6 +385,29 @@ public class RegisterServiceImpl implements RegisterService {
 		return response;
 		
 	}
-
+	
+	private String[] parseHomeNumber(String input) {
+		String[] retval = new String[2];
+		
+		String a = input;
+		Integer inputLength = input.length();
+		int i = 0;
+		for(i = 0; i < a.length(); i++){
+		    char c = a.charAt(i);
+		    if(c < '0'  || c > '9' )
+		        break;
+		}
+		String numberPart  = a.substring(0, i);
+		String alphaPart = "";
+		if (i >= inputLength - 1 && inputLength > 1 ) 
+		{
+			alphaPart = a.substring(i);
+		}
+		
+		retval[0] = numberPart;
+		retval[1] = alphaPart;
+		
+		return retval;
+	}
 
 }

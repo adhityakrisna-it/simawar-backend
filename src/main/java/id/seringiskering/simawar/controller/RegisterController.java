@@ -58,7 +58,14 @@ public class RegisterController {
 	@PreAuthorize("hasAnyAuthority('user:approval')") 
 	public ResponseEntity<HttpResponse> approveUserRegister(@RequestBody UserApprovalRequest request) throws NumberFormatException, JsonProcessingException, UnauthorizedException, DataNotFoundException {
 		String username = jwtAuthorizationFilter.getValidUsername();
-		registerService.approveUserRegister(username, request.getId(), request.getRole());
+		registerService.approveUserRegister(
+											username, 
+											request.getId(), 
+											request.getRole(), 
+											request.getClusterId(), 
+											request.getBlokId(), 
+											request.getBlokNumber(),
+											request.getBlokIdentity());
 		return response(HttpStatus.OK, "Registrasi sudah disetujui");
 	}
 
