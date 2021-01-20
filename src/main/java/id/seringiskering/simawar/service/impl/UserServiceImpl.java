@@ -330,8 +330,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	private String setProfileImageUrl(String username) {
 		// TODO Auto-generated method stub
-		return ServletUriComponentsBuilder.fromCurrentContextPath().path(
-				USER_IMAGE_PATH + username + FORWARD_SLASH + username + DOT + JPG_EXTENSION).toUriString();
+		//return ServletUriComponentsBuilder.fromCurrentContextPath().path(
+		//		USER_IMAGE_PATH + username + FORWARD_SLASH + username + DOT + JPG_EXTENSION).toUriString();
+		return FileConstant.USER_IMAGE_PATH + username;
 	}
 
 	private Role getRoleEnumName(String role) {

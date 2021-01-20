@@ -1,6 +1,8 @@
 package id.seringiskering.simawar.controller;
 
 import static id.seringiskering.simawar.constant.SecurityConstant.JWT_TOKEN_HEADER;
+import static id.seringiskering.simawar.constant.FileConstant.DOT;
+import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -36,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
@@ -48,7 +49,6 @@ import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
-import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.service.UserService;
 import id.seringiskering.simawar.utility.JWTTokenProvider;
 
@@ -139,6 +139,13 @@ public class UserController {
 		
 		return new ResponseEntity<> (user, HttpStatus.OK);
 	}
+	
+	@GetMapping("/findMyProfile")
+	public ResponseEntity<User> getMyUser() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		User user = userService.findUserByUsername(username);
+		return new ResponseEntity<> (user, HttpStatus.OK);
+	}
 
 	@GetMapping("/list")
 	public ResponseEntity<List<User>> getUsers() {
@@ -171,10 +178,11 @@ public class UserController {
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}	
 	
-	@GetMapping(path = "/image/{username}/{fileName}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public byte[] getProfileImage(@PathVariable("username") String username, @PathVariable("fileName") String fileName ) throws IOException
+	@GetMapping(path = "/image/{username}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public byte[] getProfileImage(@PathVariable("username") String username) throws IOException
 	{
-		return Files.readAllBytes(Paths.get(FileConstant.USER_FOLDER + username + FileConstant.FORWARD_SLASH + fileName));
+		LOGGER.info("Path File : " + FileConstant.USER_FOLDER + username + FileConstant.FORWARD_SLASH + username + DOT + JPG_EXTENSION);
+		return Files.readAllBytes(Paths.get(FileConstant.USER_FOLDER + username + FileConstant.FORWARD_SLASH + username + DOT + JPG_EXTENSION));
 	}
 
 	@GetMapping(path = "/image/profile/{username}", produces = MediaType.IMAGE_JPEG_VALUE)
