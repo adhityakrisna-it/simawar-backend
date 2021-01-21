@@ -1,8 +1,8 @@
 package id.seringiskering.simawar.controller;
 
-import static id.seringiskering.simawar.constant.SecurityConstant.JWT_TOKEN_HEADER;
 import static id.seringiskering.simawar.constant.FileConstant.DOT;
 import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
+import static id.seringiskering.simawar.constant.SecurityConstant.JWT_TOKEN_HEADER;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -19,6 +19,7 @@ import javax.mail.MessagingException;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
@@ -49,6 +52,9 @@ import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
+import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.request.user.UpdateUserRequest;
+import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.service.UserService;
 import id.seringiskering.simawar.utility.JWTTokenProvider;
 
@@ -76,12 +82,21 @@ public class UserController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<User> login(@RequestBody User user) {
+	public ResponseEntity<UserResponse> login(@RequestBody User user) throws JsonMappingException, JsonProcessingException {
 		authenticate(user.getUsername(), user.getPassword());
 		User loginUser = userService.findUserByUsername(user.getUsername());
+		UserResponse userResponse = new UserResponse();
+		BeanUtils.copyProperties(loginUser, userResponse);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		UserProfile userProfile = mapper.readValue(loginUser.getUserDataProfile(), UserProfile.class);
+		userResponse.setUserDataProfile(userProfile);
+		
 		UserPrincipal userPrincipal = new UserPrincipal(loginUser);
 		HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
-		return new ResponseEntity<>(loginUser, jwtHeader, HttpStatus.OK);
+		
+		return new ResponseEntity<>(userResponse, jwtHeader, HttpStatus.OK);
+		
 	}
 
 	@PostMapping("/register")
@@ -115,6 +130,34 @@ public class UserController {
 		User updatedUser = userService.updateUser(currentUsername, firstName, lastName, username, email, role,
 				Boolean.parseBoolean(isNonLocked), Boolean.parseBoolean(isActive), profileImage);
 		return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+	}
+	
+	@PostMapping("/updateProfile")
+	public ResponseEntity<UserResponse> updateProfile(@RequestBody UpdateUserRequest request) 
+			throws JsonProcessingException, UserNotFoundException, EmailExistException
+	{
+		String username = jwtAuthorizationFilter.getValidUsername();
+		User userSave = userService.updateUser(username, 
+												request.getFirstName(), 
+												request.getLastName(), 
+												request.getEmail(), 
+												request.getClusterId(), 
+												request.getBlokId(), 
+												request.getBlokNumber(), 
+												request.getBlokIdentity()
+												);
+		UserResponse userResponse = new UserResponse();
+		BeanUtils.copyProperties(userSave, userResponse);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		UserProfile userProfile = mapper.readValue(userSave.getUserDataProfile(), UserProfile.class);
+		userResponse.setUserDataProfile(userProfile);
+		
+		UserPrincipal userPrincipal = new UserPrincipal(userSave);
+		HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
+		
+		return new ResponseEntity<>(userResponse, jwtHeader, HttpStatus.OK);
+
 	}
 	
 	@GetMapping("/find/{username}")

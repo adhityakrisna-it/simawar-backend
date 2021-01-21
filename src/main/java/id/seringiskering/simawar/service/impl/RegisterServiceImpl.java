@@ -141,7 +141,6 @@ public class RegisterServiceImpl implements RegisterService {
 		userNew.setUserId(generateUserId());
 		userNew.setFirstName(saveUserRegister.getFirstName());
 		userNew.setLastName(saveUserRegister.getLastName());
-		userNew.setJoinDate(new Date());
 		userNew.setUsername(saveUserRegister.getUsername());
 		userNew.setEmail(saveUserRegister.getEmail());
 		userNew.setPassword(saveUserRegister.getPassword());

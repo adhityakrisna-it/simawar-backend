@@ -1,11 +1,14 @@
 package id.seringiskering.simawar.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -45,9 +48,12 @@ public class User {
     private Date lastLoginDateDisplay;
     
     @CreationTimestamp
+    @Column(updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date joinDate;
     
     @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     private Date editingDate;
     
     private String role; //ROLE_USER{ read, edit }, ROLE_ADMIN {delete}

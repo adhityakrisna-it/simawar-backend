@@ -15,6 +15,7 @@ import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.response.user.UserResponse;
 
 
 public interface UserService {
@@ -29,6 +30,15 @@ public interface UserService {
     User addNewUser(String firstName, String lastName, String username, String email, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException;
     
     User updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername, String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException;
+    
+    User updateUser(String username, 
+    		        String newFirstName, 
+    		        String newLastName, 
+    		        String newEmail, 
+    		        String clusterId, 
+    				String blokId, 
+    				String blokNumber, 
+    				String blokIdentity) throws UserNotFoundException, EmailExistException, JsonProcessingException;
     
     void deleteUser(String username);
     
