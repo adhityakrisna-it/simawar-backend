@@ -25,6 +25,7 @@ import id.seringiskering.simawar.constant.Authority;
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
+import id.seringiskering.simawar.entity.UserPersil;
 import id.seringiskering.simawar.entity.UserRegister;
 import id.seringiskering.simawar.enumeration.Role;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
@@ -34,6 +35,7 @@ import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.repository.PersilRepository;
+import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRegisterRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
@@ -161,8 +163,18 @@ public class RegisterServiceImpl implements RegisterService {
 						nomorTambahan
 						)
 				);
-        userRepository.save(userNew);		
-		
+
+		UserPersil userPersil = new UserPersil();
+		userPersil.setUserId(userNew.getUserId());
+		userPersil.setUser(userNew);
+		userPersil.setBlok(blok);
+		userPersil.setCluster(cluster);
+		userPersil.setNomor(nomor);
+		userPersil.setNomorTambahan(nomorTambahan);
+
+		userNew.setUserPersil(userPersil);
+        userRepository.save(userNew);
+        
 	}
 	
 
@@ -254,6 +266,8 @@ public class RegisterServiceImpl implements RegisterService {
 		User user = userRepository.findUserByUsername(username);
 		ObjectMapper mapper = new ObjectMapper();
 		UserProfile userProfile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+		
+		LOGGER.info("ROLE FOR USER : " + username + "=" + user.getRole());
 		
 		if (user.getRole().equals("PENGURUS_RT_AUTHORITIES")) {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
@@ -354,11 +368,15 @@ public class RegisterServiceImpl implements RegisterService {
 		ObjectMapper mapper = new ObjectMapper();
 		UserProfile userProfile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
 		
+		LOGGER.info("ROLE FOR USER : " + username + "=" + user.getRole());
+		
 		List<UserRegister> userRegister;
-		if (user.getRole().equals("PENGURUS_RT_AUTHORITIES")) {
+		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
 			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
-		} else if (user.getRole().equals("PENGURUS_RW_AUTHORITIES")) {
+		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
 			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
+		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatus("entri");
 		} else {
 			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndClusterId("entri", userProfile.getCluster());
 		}

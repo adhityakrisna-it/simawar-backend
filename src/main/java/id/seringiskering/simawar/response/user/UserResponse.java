@@ -2,6 +2,7 @@ package id.seringiskering.simawar.response.user;
 
 import java.util.Date;
 
+import id.seringiskering.simawar.entity.UserPersil;
 import id.seringiskering.simawar.profile.UserProfile;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,5 @@ public class UserResponse {
     private boolean isActive;
     private boolean isNotLocked;
     private UserProfile userDataProfile;
+    private UserPersil userPersil;
 }

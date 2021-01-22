@@ -51,6 +51,7 @@ import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.service.EmailService;
@@ -65,6 +66,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	private Logger LOGGER = LoggerFactory.getLogger(getClass());
 
 	private UserRepository userRepository;
+	private UserPersilRepository userPersilRepository;
 
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -74,11 +76,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	@Autowired
 	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
-			LoginAttemptService loginAttemptService, EmailService emailService) {
+			LoginAttemptService loginAttemptService, EmailService emailService,
+			UserPersilRepository userPersilRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.loginAttemptService = loginAttemptService;
 		this.emailService = emailService;
+		this.userPersilRepository = userPersilRepository;
 	}
 
 	@Override
