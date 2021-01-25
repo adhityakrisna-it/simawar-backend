@@ -18,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
@@ -26,7 +27,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -44,6 +44,7 @@ import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.constant.UserImplConstant;
 import id.seringiskering.simawar.domain.UserPrincipal;
 import id.seringiskering.simawar.entity.User;
+import id.seringiskering.simawar.entity.UserPersil;
 import id.seringiskering.simawar.enumeration.Role;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
@@ -53,7 +54,6 @@ import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
-import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.service.EmailService;
 import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
@@ -216,9 +216,30 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		currentUser.setUserDataProfile(
 				getUserProfile(currentUser.getRole(), null, null, null, clusterId, blokId, blokNumber, blokIdentity)
 				);
+		Optional<UserPersil> cekUserPersil = userPersilRepository.findById(currentUser.getUserId());
+		if (cekUserPersil.isEmpty()) {
+			UserPersil userPersil = new UserPersil();
+			userPersil.setUserId(currentUser.getUserId());
+			userPersil.setCluster(clusterId);
+			userPersil.setNomor(blokNumber);
+			userPersil.setNomorTambahan(blokIdentity);
+			userPersil.setBlok(blokId);
+			userPersil.setUser(currentUser);
+			currentUser.setUserPersil(userPersil);
+		} else {
+			UserPersil userPersil = cekUserPersil.get();
+			userPersil.setUserId(currentUser.getUserId());
+			userPersil.setCluster(clusterId);
+			userPersil.setNomor(blokNumber);
+			userPersil.setNomorTambahan(blokIdentity);
+			userPersil.setBlok(blokId);
+			userPersil.setUser(currentUser);
+			currentUser.setUserPersil(userPersil);
+		}
 		userRepository.save(currentUser);
 
 		return currentUser;
+		
 	}
 
 	@Override
