@@ -15,11 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.CheckForNull;
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 
@@ -27,6 +29,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -45,15 +48,19 @@ import id.seringiskering.simawar.constant.UserImplConstant;
 import id.seringiskering.simawar.domain.UserPrincipal;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.entity.UserPersil;
+import id.seringiskering.simawar.entity.UserRegister;
 import id.seringiskering.simawar.enumeration.Role;
+import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
+import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.service.EmailService;
 import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
@@ -62,6 +69,8 @@ import id.seringiskering.simawar.service.UserService;
 @Transactional
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService {
+
+	private static final String DATA_USER_TIDAK_DITEMUKAN = "Data user tidak ditemukan";
 
 	private Logger LOGGER = LoggerFactory.getLogger(getClass());
 
@@ -281,6 +290,67 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		userRepository.save(user);
 		return user;
 	}
+	
+	@Override
+	public List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException {
+		// TODO Auto-generated method stub
+		User user = userRepository.findUserByUsername(username);
+		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
+			Optional<List<User>> listUser = userRepository.queryByRt(StringManipulation.isNull(user.getUserPersil().getRt()," "));
+			
+			if (!listUser.isPresent()) {
+				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
+			}
+			
+			List<UserResponse> userResponse = new ArrayList<UserResponse>();
+			
+			if (listUser.get().size() >0) {
+				for (User userlist : listUser.get()) {
+					UserResponse usercopy = new UserResponse();
+					BeanUtils.copyProperties(userlist, usercopy);
+					userResponse.add(usercopy);
+				}
+			}
+			
+			return userResponse;
+			
+		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
+			Optional<List<User>> listUser = userRepository.queryByRt(user.getUserPersil().getRw());
+			
+			if (!listUser.isPresent()) {
+				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
+			}
+			
+			List<UserResponse> userResponse = new ArrayList<UserResponse>();
+			
+			if (listUser.get().size() >0) {
+				for (User userlist : listUser.get()) {
+					UserResponse usercopy = new UserResponse();
+					BeanUtils.copyProperties(userlist, usercopy);
+					userResponse.add(usercopy);
+				}
+			}
+			
+			return userResponse;
+			
+		}else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
+			List<User> listUser = userRepository.findAll();
+			List<UserResponse> userResponse = new ArrayList<UserResponse>();
+			
+			if (listUser.size() >0) {
+				for (User userlist : listUser) {
+					UserResponse usercopy = new UserResponse();
+					BeanUtils.copyProperties(userlist, usercopy);
+					userResponse.add(usercopy);
+				}
+			}
+			
+			return userResponse;
+			
+		}
+
+		return null;
+	}	
 
 	private String getTemporaryProfileImageUrl(String username) {
 		// TODO Auto-generated method stub
@@ -366,6 +436,61 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		// TODO Auto-generated method stub
 		return userRepository.findUserByEmail(email);
 	}
+	
+	@Override
+	public void updateUser(String username,
+			String editedUsername,
+			String newFirstName, 
+			String newLastName, 
+			String newEmail, 
+			String role, 
+			boolean isNonLocked, 
+			boolean isActive, 
+			String newPassword, 
+			String clusterId,
+			String blokId, 
+			String blokNumber, 
+			String blokIdentity) throws UserNotFoundException, EmailExistException, JsonProcessingException {
+		// TODO Auto-generated method stub
+
+		User currentUser = validateNewEmail(editedUsername, newEmail);
+		currentUser.setFirstName(newFirstName);
+		currentUser.setLastName(newLastName);
+		currentUser.setEmail(newEmail);
+		currentUser.setActive(isActive);
+		currentUser.setNotLocked(isNonLocked);
+		currentUser.setUserDataProfile(
+				getUserProfile(currentUser.getRole(), null, null, null, clusterId, blokId, blokNumber, blokIdentity)
+				);
+		
+		if (!newPassword.equals("")) {
+			currentUser.setPassword(encodePassword(newPassword));
+		}
+		
+		Optional<UserPersil> cekUserPersil = userPersilRepository.findById(currentUser.getUserId());
+		if (cekUserPersil.isEmpty()) {
+			UserPersil userPersil = new UserPersil();
+			userPersil.setUserId(currentUser.getUserId());
+			userPersil.setCluster(clusterId);
+			userPersil.setNomor(blokNumber);
+			userPersil.setNomorTambahan(blokIdentity);
+			userPersil.setBlok(blokId);
+			userPersil.setUser(currentUser);
+			currentUser.setUserPersil(userPersil);
+		} else {
+			UserPersil userPersil = cekUserPersil.get();
+			userPersil.setUserId(currentUser.getUserId());
+			userPersil.setCluster(clusterId);
+			userPersil.setNomor(blokNumber);
+			userPersil.setNomorTambahan(blokIdentity);
+			userPersil.setBlok(blokId);
+			userPersil.setUser(currentUser);
+			currentUser.setUserPersil(userPersil);
+		}
+		userRepository.save(currentUser);
+
+		return;
+	}	
 
 	private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
 		// TODO Auto-generated method stub
@@ -443,5 +568,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 		return jsonProfile;
 	}
+
 
 }

@@ -183,7 +183,6 @@ public class RegisterServiceImpl implements RegisterService {
 	public void disapproveUserRegister(String username, Long id)
 			throws JsonProcessingException, UnauthorizedException, DataNotFoundException {
 		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
 		validateUsernameAndId(username, id);
 		
 		Optional<UserRegister> userRegister = userRegisterRepository.findById(id);
@@ -269,10 +268,10 @@ public class RegisterServiceImpl implements RegisterService {
 		
 		LOGGER.info("ROLE FOR USER : " + username + "=" + user.getRole());
 		
-		if (user.getRole().equals("PENGURUS_RT_AUTHORITIES")) {
+		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
 			return userRegister;
-		} else if (user.getRole().equals("PENGURUS_RW_AUTHORITIES")) {
+		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
 			return userRegister;
 		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {

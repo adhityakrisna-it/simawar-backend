@@ -46,6 +46,7 @@ import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.domain.UserPrincipal;
 import id.seringiskering.simawar.entity.User;
+import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
@@ -53,6 +54,7 @@ import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.request.user.AdminUpdateUserRequest;
 import id.seringiskering.simawar.request.user.UpdateUserRequest;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.service.UserService;
@@ -153,10 +155,7 @@ public class UserController {
 		UserProfile userProfile = mapper.readValue(userSave.getUserDataProfile(), UserProfile.class);
 		userResponse.setUserDataProfile(userProfile);
 		
-		UserPrincipal userPrincipal = new UserPrincipal(userSave);
-		HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
-		
-		return new ResponseEntity<>(userResponse, jwtHeader, HttpStatus.OK);
+		return new ResponseEntity<>(userResponse, HttpStatus.OK);
 
 	}
 	
@@ -191,6 +190,7 @@ public class UserController {
 	}
 
 	@GetMapping("/list")
+	@PreAuthorize("hasAnyAuthority('user:update')")
 	public ResponseEntity<List<User>> getUsers() {
 		List<User> users = userService.getUsers();
 		return new ResponseEntity<> (users, HttpStatus.OK);
@@ -250,6 +250,39 @@ public class UserController {
 		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 	
+	@GetMapping("/findUsersForEditing")
+	@PreAuthorize("hasAnyAuthority('user:update')")
+	public ResponseEntity<List<UserResponse>> getUsersForEditing() throws DataNotFoundException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<UserResponse> userResponse = userService.getUsersForEditing(username);
+		
+		return new ResponseEntity<> (userResponse, HttpStatus.OK);
+	}	
+	
+	@PostMapping("/updateUser")
+	@PreAuthorize("hasAnyAuthority('user:update')") // ssesuai setting pada global configuration di class SecurityConfiguration, di situ sudah disetting ==> @EnableGlobalMethodSecurity(prePostEnabled = true) 
+	public ResponseEntity<HttpResponse> updateUser(@RequestBody AdminUpdateUserRequest updateRequest) 
+			throws JsonProcessingException, UserNotFoundException, EmailExistException  {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		
+		userService.updateUser(
+				username, 
+				updateRequest.getUsername(), 
+				updateRequest.getFirstName(), 
+				updateRequest.getLastName(), 
+				updateRequest.getEmail(), 
+				updateRequest.getRole(), 
+				Boolean.parseBoolean(updateRequest.getIsNotLocked()) , 
+				Boolean.parseBoolean(updateRequest.getIsActive()), 
+				updateRequest.getPassword(), 
+				updateRequest.getClusterId(), 
+				updateRequest.getBlokId(), 
+				updateRequest.getBlokNumber(), 
+				updateRequest.getBlokIdentity());
+		
+		return response(HttpStatus.OK, "User berhasil diupdate");
+		
+	}
 
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub
