@@ -10,8 +10,8 @@ public interface UserRegisterRepository extends JpaRepository<UserRegister, Long
 
 	UserRegister findUserRegisterByUsernameAndRegisterStatus(String username, String registerStatus);
 	UserRegister findUserRegisterByEmailAndRegisterStatus(String email, String registerStatus);
-	List<UserRegister> findUserRegisterByRegisterStatusAndRtId(String registerStatus, String rtId);
-	List<UserRegister> findUserRegisterByRegisterStatusAndRwId(String registerStatus, String rwId);
+	List<UserRegister> findUserRegisterByRegisterStatusAndRtId(String registerStatus, int rtId);
+	List<UserRegister> findUserRegisterByRegisterStatusAndRwId(String registerStatus, int rwId);
 	List<UserRegister> findUserRegisterByRegisterStatusAndClusterId(String registerStatus, String clusterId);
 	List<UserRegister> findUserRegisterByRegisterStatus(String registerStatus);
 

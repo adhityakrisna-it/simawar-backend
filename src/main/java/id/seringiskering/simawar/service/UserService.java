@@ -8,6 +8,7 @@ import javax.mail.MessagingException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
@@ -24,7 +25,7 @@ public interface UserService {
 	
 	List<User> getUsers();
 	
-	List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException;
+	List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException, JsonMappingException, JsonProcessingException;
 	
 	User findUserByUsername(String username);
 	
@@ -60,6 +61,13 @@ public interface UserService {
     				boolean isNonLocked, 
     				boolean isActive, 
     				String newPassword, String clusterId,
-    				String blokId, String blokNumber, String blokIdentity) throws UserNotFoundException, EmailExistException, JsonProcessingException;
+    				String blokId, 
+    				String blokNumber, 
+    				String blokIdentity,
+    				String dataRw,
+    				String dataRt,
+    				String rw,
+    				String rt) 
+    throws UserNotFoundException, EmailExistException, JsonProcessingException;
 
 }

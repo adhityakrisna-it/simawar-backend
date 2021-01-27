@@ -65,7 +65,12 @@ public class RegisterController {
 											request.getClusterId(), 
 											request.getBlokId(), 
 											request.getBlokNumber(),
-											request.getBlokIdentity());
+											request.getBlokIdentity(),
+											request.getDataRW(),
+											request.getDataRT(),
+											request.getRw(),
+											request.getRt()
+											);
 		return response(HttpStatus.OK, "Registrasi sudah disetujui");
 	}
 

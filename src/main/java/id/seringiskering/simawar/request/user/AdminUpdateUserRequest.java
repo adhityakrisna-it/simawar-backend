@@ -18,4 +18,8 @@ public class AdminUpdateUserRequest {
 	String isActive;
 	String isNotLocked;
 	String role;
+	String dataRw;
+	String dataRt;
+	String rt;
+	String rw;
 }

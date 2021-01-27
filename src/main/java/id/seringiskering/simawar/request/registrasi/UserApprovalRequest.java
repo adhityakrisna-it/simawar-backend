@@ -17,4 +17,9 @@ public class UserApprovalRequest {
 	private String blokId;
 	private String blokNumber;
 	private String blokIdentity;
+	private String dataRW;
+	private String dataRT;
+	private String rw;
+	private String rt;
+	
 }

@@ -17,7 +17,20 @@ public interface RegisterService {
 	void registerNewUser(UserRegistrationRequest request) throws UsernameExistException, EmailExistException; 
 	List<UserRegister> findUserRegisterForApprove(String username) throws  JsonProcessingException;
 	List<UserRegisterResponse> findUserRegisterForApproval(String username) throws  JsonProcessingException;
-	void approveUserRegister(String username, Long id, String role, String cluster, String blok, String nomor, String nomorTambahan) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
+	void approveUserRegister(
+			 				String username, 
+			 				Long id, 
+			 				String role, 
+			 				String cluster, 
+			 				String blok, 
+			 				String nomor, 
+			 				String nomorTambahan,
+			 				String dataRW,
+			 				String dataRT,
+			 				String rw,
+			 				String rt
+			 				) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
+	
 	void disapproveUserRegister(String username, Long id) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
 
 }

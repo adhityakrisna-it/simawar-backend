@@ -97,11 +97,12 @@ public class RegisterServiceImpl implements RegisterService {
 													request.getBlokId(), 
 													blokNumber, 
 													blokIdentity);
-		
+
+		userRegister.setRtId(Integer.parseInt(request.getRt()));
+		userRegister.setRwId(Integer.parseInt(request.getRw()));
+
 		if (persil.size() > 0) {
 			Persil p = persil.get(0);
-			userRegister.setRtId(p.getRtId());
-			userRegister.setRwId(p.getRwId());
 			userRegister.setPersilId(p.getPersilId());
 			userRegister.setKelurahanId(p.getKelurahanId());
 			userRegister.setBlokId(p.getBlokId());
@@ -119,7 +120,18 @@ public class RegisterServiceImpl implements RegisterService {
 	
 	@Override
 	@Transactional
-	public void approveUserRegister(String username, Long id, String role, String cluster, String blok, String nomor, String nomorTambahan) 
+	public void approveUserRegister(
+				String username, 
+				Long id, 
+				String role, 
+				String cluster, 
+				String blok, 
+				String nomor, 
+				String nomorTambahan,
+ 				String dataRW,
+ 				String dataRT,
+ 				String rw,
+ 				String rt) 
 				throws JsonProcessingException, UnauthorizedException, DataNotFoundException 
 	{
 		// TODO Auto-generated method stub
@@ -151,11 +163,28 @@ public class RegisterServiceImpl implements RegisterService {
 		userNew.setRole(getRoleEnumName(role).name());
 		userNew.setAuthorities(getRoleEnumName(role).getAuthorities());        
 		userNew.setProfileImageUrl(getTemporaryProfileImageUrl(saveUserRegister.getUsername()));
+		
+		Integer iRt;
+		Integer iRw;
+		
+		if (dataRT == null | dataRT.equals("")) {
+			iRt = null;
+		} else {
+			iRt = Integer.valueOf(dataRT);
+		}
+		
+		if (dataRW == null | dataRW.equals("")) {
+			iRw = null;
+		} else {
+			iRw = Integer.valueOf(dataRW);
+		}
+		
+		
 		userNew.setUserDataProfile(
 				getUserProfile(
 						role, 
-						saveUserRegister.getRtId(), 
-						saveUserRegister.getRwId(), 
+						iRt, 
+						iRw, 
 						saveUserRegister.getKelurahanId(), 
 						cluster,
 						blok,
@@ -171,6 +200,8 @@ public class RegisterServiceImpl implements RegisterService {
 		userPersil.setCluster(cluster);
 		userPersil.setNomor(nomor);
 		userPersil.setNomorTambahan(nomorTambahan);
+		userPersil.setRt(rt);
+		userPersil.setRw(rw);
 
 		userNew.setUserPersil(userPersil);
         userRepository.save(userNew);
@@ -223,12 +254,16 @@ public class RegisterServiceImpl implements RegisterService {
 			userProfile.setNomor(nomor);
 		} else if (role.equals("ROLE_WARGA")) {
 			userProfile.setCluster(clusterId);
-			userProfile.setRt("ALL");
-			userProfile.setRw("ALL");
 			userProfile.setKelurahan("ALL");
 			userProfile.setBlok(blok);
 			userProfile.setNomor(nomor);
 			userProfile.setNomorTambahan(nomorTambahan);
+		} else if (role.equals("ROLE_PENGURUS_RT")) {
+			userProfile.setCluster(clusterId);
+			userProfile.setRt(rtId.toString());
+		} else if (role.equals("ROLE_PENGURUS_RW")) {
+			userProfile.setCluster(clusterId);
+			userProfile.setRw(rwId.toString());			
 		}
 		else {
 			userProfile.setCluster(clusterId);
@@ -269,10 +304,10 @@ public class RegisterServiceImpl implements RegisterService {
 		LOGGER.info("ROLE FOR USER : " + username + "=" + user.getRole());
 		
 		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
-			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
+			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", Integer.parseInt(userProfile.getRt()));
 			return userRegister;
 		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
-			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
+			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", Integer.parseInt(userProfile.getRw()));
 			return userRegister;
 		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
 			List<UserRegister> userRegister = userRegisterRepository.findUserRegisterByRegisterStatus("entri");
@@ -371,9 +406,9 @@ public class RegisterServiceImpl implements RegisterService {
 		
 		List<UserRegister> userRegister;
 		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
-			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt());
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRtId("entri", userProfile.getRt()==null ? null : Integer.parseInt(userProfile.getRt()));
 		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
-			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw());
+			userRegister = userRegisterRepository.findUserRegisterByRegisterStatusAndRwId("entri", userProfile.getRw()==null ? null : Integer.parseInt(userProfile.getRw()));
 		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
 			userRegister = userRegisterRepository.findUserRegisterByRegisterStatus("entri");
 		} else {
@@ -394,6 +429,9 @@ public class RegisterServiceImpl implements RegisterService {
 												" " + 
 												userreg.getBlokNumber() + 
 												StringManipulation.isNull(userreg.getBlokIdentity(), "") );
+			
+			userRegisterResponse.setRt((userreg.getRtId() == null)? null : userreg.getRtId().toString());
+			userRegisterResponse.setRw((userreg.getRtId() == null)? null : userreg.getRwId().toString());
 			
 			response.add(userRegisterResponse);
 		}

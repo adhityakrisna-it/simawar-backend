@@ -20,4 +20,6 @@ public class UserRegisterResponse {
 		private String registerStatus;
 		private String dateRegister;
 		private String address;
+		private String rt;
+		private String rw;
 }

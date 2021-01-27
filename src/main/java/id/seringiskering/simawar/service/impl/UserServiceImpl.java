@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.seringiskering.simawar.constant.FileConstant;
@@ -292,11 +293,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 	
 	@Override
-	public List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException {
+	public List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException, JsonMappingException, JsonProcessingException {
 		// TODO Auto-generated method stub
 		User user = userRepository.findUserByUsername(username);
-		if (user.getRole().equals("ROLE_PENGURUS_RT")) {
-			Optional<List<User>> listUser = userRepository.queryByRt(StringManipulation.isNull(user.getUserPersil().getRt()," "));
+		if (user.getRole().equals("ROLE_PENGURUS_RT") && user.getUserDataProfile() != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			UserProfile userprofile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+
+			Optional<List<User>> listUser = userRepository.queryByRt(StringManipulation.isNull(userprofile.getRt()," "));
 			
 			if (!listUser.isPresent()) {
 				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
@@ -308,14 +312,23 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 				for (User userlist : listUser.get()) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
+					
+					ObjectMapper mapper3 = new ObjectMapper();
+					UserProfile userProfile = mapper3.readValue(userlist.getUserDataProfile(), UserProfile.class);
+					usercopy.setUserDataProfile(userProfile);
+
 					userResponse.add(usercopy);
+					
 				}
 			}
 			
 			return userResponse;
 			
-		} else if (user.getRole().equals("ROLE_PENGURUS_RW")) {
-			Optional<List<User>> listUser = userRepository.queryByRt(user.getUserPersil().getRw());
+		} else if (user.getRole().equals("ROLE_PENGURUS_RW") && user.getUserDataProfile() != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			UserProfile userprofile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+			
+			Optional<List<User>> listUser = userRepository.queryByRw(userprofile.getRw());
 			
 			if (!listUser.isPresent()) {
 				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
@@ -327,7 +340,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 				for (User userlist : listUser.get()) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
+
+					ObjectMapper mapper2 = new ObjectMapper();
+					UserProfile userProfile = mapper2.readValue(userlist.getUserDataProfile(), UserProfile.class);
+					usercopy.setUserDataProfile(userProfile);
+
 					userResponse.add(usercopy);
+					
 				}
 			}
 			
@@ -341,6 +360,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 				for (User userlist : listUser) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
+					
+					ObjectMapper mapper = new ObjectMapper();
+					if (userlist.getUserDataProfile() != null) {
+						UserProfile userProfile = mapper.readValue(userlist.getUserDataProfile(), UserProfile.class);
+						usercopy.setUserDataProfile(userProfile);
+						
+					}
 					userResponse.add(usercopy);
 				}
 			}
@@ -450,17 +476,26 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			String clusterId,
 			String blokId, 
 			String blokNumber, 
-			String blokIdentity) throws UserNotFoundException, EmailExistException, JsonProcessingException {
+			String blokIdentity,
+			String dataRw,
+			String dataRt,
+			String rw,
+			String rt) throws UserNotFoundException, EmailExistException, JsonProcessingException {
 		// TODO Auto-generated method stub
 
 		User currentUser = validateNewEmail(editedUsername, newEmail);
+		currentUser.setRole(role);
 		currentUser.setFirstName(newFirstName);
 		currentUser.setLastName(newLastName);
 		currentUser.setEmail(newEmail);
 		currentUser.setActive(isActive);
 		currentUser.setNotLocked(isNonLocked);
+		
+		Integer iRt = (dataRt==null) ? null : Integer.valueOf(dataRt);
+		Integer iRw = (dataRw==null) ? null : Integer.valueOf(dataRw);
+		
 		currentUser.setUserDataProfile(
-				getUserProfile(currentUser.getRole(), null, null, null, clusterId, blokId, blokNumber, blokIdentity)
+				getUserProfile(currentUser.getRole(), iRt, iRw, null, clusterId, blokId, blokNumber, blokIdentity)
 				);
 		
 		if (!newPassword.equals("")) {
@@ -476,6 +511,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			userPersil.setNomorTambahan(blokIdentity);
 			userPersil.setBlok(blokId);
 			userPersil.setUser(currentUser);
+			userPersil.setRt(rt);
+			userPersil.setRw(rw);
 			currentUser.setUserPersil(userPersil);
 		} else {
 			UserPersil userPersil = cekUserPersil.get();
@@ -485,6 +522,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			userPersil.setNomorTambahan(blokIdentity);
 			userPersil.setBlok(blokId);
 			userPersil.setUser(currentUser);
+			userPersil.setRt(rt);
+			userPersil.setRw(rw);
 			currentUser.setUserPersil(userPersil);
 		}
 		userRepository.save(currentUser);
@@ -534,8 +573,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 		if (role.equals("ROLE_USER")) {
 			userProfile.setCluster(clusterId);
-			userProfile.setRt(String.valueOf(rtId));
-			userProfile.setRw(String.valueOf(rtId));
 			userProfile.setKelurahan(kelurahanId);
 			userProfile.setBlok(blok);
 			userProfile.setNomor(nomor);
@@ -548,12 +585,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			userProfile.setNomor(nomor);
 		} else if (role.equals("ROLE_WARGA")) {
 			userProfile.setCluster(clusterId);
-			userProfile.setRt("ALL");
-			userProfile.setRw("ALL");
 			userProfile.setKelurahan("ALL");
 			userProfile.setBlok(blok);
 			userProfile.setNomor(nomor);
 			userProfile.setNomorTambahan(nomorTambahan);
+		} else if (role.equals("ROLE_PENGURUS_RT")) {
+			userProfile.setCluster(clusterId);
+			userProfile.setRt((rtId == null) ? null : rtId.toString());
+		} else if (role.equals("ROLE_PENGURUS_RW")) {
+			userProfile.setCluster(clusterId);
+			userProfile.setRw((rwId == null) ? null : rwId.toString());
 		} else {
 			userProfile.setCluster(clusterId);
 			userProfile.setRt(String.valueOf(rtId));
@@ -568,6 +609,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 		return jsonProfile;
 	}
+	
+	
 
 
 }

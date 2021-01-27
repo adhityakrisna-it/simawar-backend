@@ -252,7 +252,8 @@ public class UserController {
 	
 	@GetMapping("/findUsersForEditing")
 	@PreAuthorize("hasAnyAuthority('user:update')")
-	public ResponseEntity<List<UserResponse>> getUsersForEditing() throws DataNotFoundException {
+	public ResponseEntity<List<UserResponse>> getUsersForEditing() 
+			throws DataNotFoundException, JsonMappingException, JsonProcessingException {
 		String username = jwtAuthorizationFilter.getValidUsername();
 		List<UserResponse> userResponse = userService.getUsersForEditing(username);
 		
@@ -278,7 +279,11 @@ public class UserController {
 				updateRequest.getClusterId(), 
 				updateRequest.getBlokId(), 
 				updateRequest.getBlokNumber(), 
-				updateRequest.getBlokIdentity());
+				updateRequest.getBlokIdentity(),
+				updateRequest.getDataRw(),
+				updateRequest.getDataRt(),
+				updateRequest.getRw(),
+				updateRequest.getRt());
 		
 		return response(HttpStatus.OK, "User berhasil diupdate");
 		
