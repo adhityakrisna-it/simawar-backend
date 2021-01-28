@@ -490,6 +490,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		currentUser.setEmail(newEmail);
 		currentUser.setActive(isActive);
 		currentUser.setNotLocked(isNonLocked);
+		currentUser.setAuthorities(getRoleEnumName(role).getAuthorities());
 		
 		Integer iRt = (dataRt==null) ? null : Integer.valueOf(dataRt);
 		Integer iRw = (dataRw==null) ? null : Integer.valueOf(dataRw);

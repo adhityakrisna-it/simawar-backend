@@ -1,11 +1,13 @@
 package id.seringiskering.simawar.entity;
 
 import java.util.Date;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -67,5 +69,25 @@ public class User {
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
 	@PrimaryKeyJoinColumn
 	private UserPersil userPersil;
+	
+	//bi-directional many-to-one association to Family
+	@OneToMany(mappedBy="user1")
+	private Set<Family> families1;
+
+	//bi-directional many-to-one association to Family
+	@OneToMany(mappedBy="user2")
+	private Set<Family> families2;
+
+	//bi-directional many-to-one association to Family
+	@OneToMany(mappedBy="user3")
+	private Set<Family> families3;
+
+	//bi-directional many-to-one association to FamilyMember
+	@OneToMany(mappedBy="user1")
+	private Set<FamilyMember> familyMembers1;
+
+	//bi-directional many-to-one association to FamilyMember
+	@OneToMany(mappedBy="user2")
+	private Set<FamilyMember> familyMembers2;	
 
 }
