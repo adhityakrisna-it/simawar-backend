@@ -10,7 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import id.seringiskering.simawar.entity.MasterBloodType;
 import id.seringiskering.simawar.entity.MasterCluster;
+import id.seringiskering.simawar.entity.MasterFamilyStatus;
+import id.seringiskering.simawar.entity.MasterLastEducation;
+import id.seringiskering.simawar.entity.MasterPekerjaan;
 import id.seringiskering.simawar.entity.MasterRole;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
@@ -49,5 +53,31 @@ public class MasterController {
 		List<MasterRole> masterRole = masterService.findAllMasterRoleByUsername(username);
 		return new ResponseEntity<List<MasterRole>>(masterRole, HttpStatus.OK);
 	}
-
+	
+	@GetMapping("/findMasterBloodType")
+	public ResponseEntity<List<MasterBloodType>> findMasterBloodType()
+	{
+		List<MasterBloodType> masterBloodType = masterService.findAllMasterBloodType();
+		return new ResponseEntity<List<MasterBloodType>>(masterBloodType, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findMasterFamilyStatus")
+	public ResponseEntity<List<MasterFamilyStatus>> findMasterFamilyStatus() {
+		List<MasterFamilyStatus> ret = masterService.findAllMasterFamilyStatus();
+		return new ResponseEntity<List<MasterFamilyStatus>>(ret, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findMasterPekerjaan") 
+	public ResponseEntity<List<MasterPekerjaan>> findMasterPekerjaan()
+	{
+		List<MasterPekerjaan> ret = masterService.findAllMasterPekerjaan();
+		return new ResponseEntity<List<MasterPekerjaan>>(ret, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findMasterLastEducation")
+	public ResponseEntity<List<MasterLastEducation>> findMasterLastEducation() {
+		List<MasterLastEducation> ret = masterService.findAllMasterLastEducation();
+		return new ResponseEntity<List<MasterLastEducation>>(ret, HttpStatus.OK);
+	}
+		
 }

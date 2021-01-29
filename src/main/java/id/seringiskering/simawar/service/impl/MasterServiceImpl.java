@@ -9,12 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import id.seringiskering.simawar.entity.MasterBlok;
+import id.seringiskering.simawar.entity.MasterBloodType;
 import id.seringiskering.simawar.entity.MasterCluster;
+import id.seringiskering.simawar.entity.MasterFamilyStatus;
+import id.seringiskering.simawar.entity.MasterLastEducation;
+import id.seringiskering.simawar.entity.MasterPekerjaan;
 import id.seringiskering.simawar.entity.MasterRole;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.repository.MasterBlokRepository;
+import id.seringiskering.simawar.repository.MasterBloodTypeRepository;
 import id.seringiskering.simawar.repository.MasterClusterRepository;
+import id.seringiskering.simawar.repository.MasterFamilyStatusRepository;
+import id.seringiskering.simawar.repository.MasterLastEducationRepository;
+import id.seringiskering.simawar.repository.MasterPekerjaanRepository;
 import id.seringiskering.simawar.repository.MasterRoleRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.response.master.MasterBlokResponse;
@@ -29,15 +37,27 @@ public class MasterServiceImpl implements MasterService {
 	private MasterBlokRepository masterBlokRepository;
 	private MasterRoleRepository masterRoleRepository;
 	private UserRepository userRepository;
+	private MasterBloodTypeRepository masterBloodTypeRepository;
+	private MasterFamilyStatusRepository masterFamilyStatusRepository;
+	private MasterLastEducationRepository masterLastEducationRepository;
+	private MasterPekerjaanRepository masterPekerjaanRepository;
 
 	@Autowired
 	public MasterServiceImpl(MasterClusterRepository masterClusterRepository, MasterBlokRepository masterBlokRepository,
-			MasterRoleRepository masterRoleRepository, UserRepository userRepository) {
+			MasterRoleRepository masterRoleRepository, UserRepository userRepository,
+			MasterBloodTypeRepository masterBloodTypeRepository,
+			MasterFamilyStatusRepository masterFamilyStatusRepository,
+			MasterLastEducationRepository masterLastEducationRepository,
+			MasterPekerjaanRepository masterPekerjaanRepository) {
 		super();
 		this.masterClusterRepository = masterClusterRepository;
 		this.masterBlokRepository = masterBlokRepository;
 		this.masterRoleRepository = masterRoleRepository;
 		this.userRepository = userRepository;
+		this.masterBloodTypeRepository = masterBloodTypeRepository;
+		this.masterFamilyStatusRepository = masterFamilyStatusRepository;
+		this.masterLastEducationRepository = masterLastEducationRepository;
+		this.masterPekerjaanRepository = masterPekerjaanRepository;
 	}
 
 	@Override
@@ -95,6 +115,30 @@ public class MasterServiceImpl implements MasterService {
 		}
 
 		return null;
+	}
+
+	@Override
+	public List<MasterBloodType> findAllMasterBloodType() {
+		// TODO Auto-generated method stub
+		return masterBloodTypeRepository.findAll();
+	}
+
+	@Override
+	public List<MasterFamilyStatus> findAllMasterFamilyStatus() {
+		// TODO Auto-generated method stub
+		return masterFamilyStatusRepository.findAll();
+	}
+
+	@Override
+	public List<MasterLastEducation> findAllMasterLastEducation() {
+		// TODO Auto-generated method stub
+		return masterLastEducationRepository.findAll();
+	}
+
+	@Override
+	public List<MasterPekerjaan> findAllMasterPekerjaan() {
+		// TODO Auto-generated method stub
+		return masterPekerjaanRepository.findAll();
 	}
 
 }

@@ -14,4 +14,5 @@ public class ListWargaResponse {
 	private String phoneNumber1;
 	private String address;	
 	private Date birthDate;
+	private String sex;
 }
