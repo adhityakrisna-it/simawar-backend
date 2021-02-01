@@ -33,6 +33,7 @@ import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
+import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
@@ -155,6 +156,11 @@ public class ExceptionHandling implements ErrorController {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<HttpResponse> unAuthorizedException(UnauthorizedException exception) {
         return createHttpResponse(UNAUTHORIZED, exception.getMessage());
+    }
+    
+    @ExceptionHandler(InvalidDataException.class)
+    public ResponseEntity<HttpResponse> invalidDataException(InvalidDataException exception) {
+    	return createHttpResponse(INTERNAL_SERVER_ERROR, exception.getMessage());
     }
     
 //    @ExceptionHandler(NoHandlerFoundException.class)
