@@ -1,6 +1,11 @@
 package id.seringiskering.simawar.controller;
 
+import static id.seringiskering.simawar.constant.FileConstant.DOT;
+import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
+
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
@@ -120,10 +127,40 @@ public class WargaController {
 		wargaService.saveDataWarga("Edit", username, request, fotoProfile, fotoKtp, fotoKK);
 		return response(HttpStatus.OK,"Data warga berhasil disimpan");
 	}
+
+	@GetMapping(path = "/data/profile/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public byte[] getProfileImage(@PathVariable("noktp") String noktp) throws IOException
+	{
+		String fileLocation = FileConstant.WARGA_FOLDER  + noktp + FileConstant.FORWARD_SLASH + "fotoProfile" + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		return Files.readAllBytes(Paths.get(fileLocation));
+	}
+	
+	@GetMapping(path = "/data/ktp/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public byte[] getKtpImage(@PathVariable("noktp") String noktp) throws IOException
+	{
+		String fileLocation = FileConstant.WARGA_FOLDER  + noktp + FileConstant.FORWARD_SLASH + "fotoKtp" + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		return Files.readAllBytes(Paths.get(fileLocation));
+
+	}
+	
+	@GetMapping(path = "/data/kk/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public byte[] getKkImage(@PathVariable("noktp") String noktp) throws IOException
+	{
+		String fileLocation = FileConstant.WARGA_FOLDER  + noktp + FileConstant.FORWARD_SLASH + "fotoKK" + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		return Files.readAllBytes(Paths.get(fileLocation));
+	}	
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub
 		return new ResponseEntity<> (new HttpResponse(httpStatus.value(),httpStatus, httpStatus.getReasonPhrase().toUpperCase(), message), httpStatus);
 	}		
+	
+	
 	
 }

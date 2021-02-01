@@ -126,15 +126,16 @@ public class WargaServiceImpl implements WargaService {
 		
 		if (fotoWarga != null) {
 			saveImage(request.getNoKtp(), fotoWarga , "fotoProfile");
+			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
 			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp()); 
 		}
 		if (fotoKtp != null) {
 			saveImage(request.getNoKtp(), fotoKtp, "fotoKtp");
-			saveWarga.setProfileUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
+			saveWarga.setKtpUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
 		}
 		if (fotoKK != null ) {
 			saveImage(request.getNoKtp(), fotoKK, "fotoKK");
-			saveWarga.setProfileUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
+			saveWarga.setKkUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
 		}
 		
 		familyMemberRepository.save(saveWarga);

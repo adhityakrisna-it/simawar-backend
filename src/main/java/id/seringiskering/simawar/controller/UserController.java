@@ -213,12 +213,21 @@ public class UserController {
 	}
 	
 	@PostMapping("/updateProfileImage")
-	public ResponseEntity<User> updateProfileImage(
+	public ResponseEntity<UserResponse> updateProfileImage(
 			@RequestParam("username") String username,
 			@RequestParam(value = "profileImage", required = false) MultipartFile profileImage)
 			throws UserNotFoundException, UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
 		User user = userService.updateProfileImage(username, profileImage);
-		return new ResponseEntity<>(user, HttpStatus.OK);
+		UserResponse userResponse = new UserResponse();
+		BeanUtils.copyProperties(user, userResponse);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		UserProfile userProfile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
+		userResponse.setUserDataProfile(userProfile);
+		
+		UserPrincipal userPrincipal = new UserPrincipal(user);
+		
+		return new ResponseEntity<>(userResponse, HttpStatus.OK);
 	}	
 	
 	@GetMapping(path = "/image/{username}", produces = MediaType.IMAGE_JPEG_VALUE)

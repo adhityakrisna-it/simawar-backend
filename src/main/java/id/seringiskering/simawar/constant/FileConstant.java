@@ -12,7 +12,7 @@ public class FileConstant {
     public static final String FORWARD_SLASH = "/";
     public static final String NOT_AN_IMAGE_FILE = " is not an image file. Please upload an image file";
     public static final String TEMP_PROFILE_IMAGE_BASE_URL = "https://robohash.org/";
-    public static final String FAMILY_MEMBER_PROFILE_PATH = "/warga/data/profile";
-    public static final String FAMILY_MEMBER_KTP_PATH = "/warga/data/ktp";
-    public static final String FAMILY_MEMBER_KK_PATH = "/warga/data/kk";
+    public static final String FAMILY_MEMBER_PROFILE_PATH = "/warga/data/profile/";
+    public static final String FAMILY_MEMBER_KTP_PATH = "/warga/data/ktp/";
+    public static final String FAMILY_MEMBER_KK_PATH = "/warga/data/kk/";
 }

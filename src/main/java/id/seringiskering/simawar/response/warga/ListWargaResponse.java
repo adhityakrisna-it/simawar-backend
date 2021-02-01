@@ -15,4 +15,7 @@ public class ListWargaResponse {
 	private String address;	
 	private Date birthDate;
 	private String sex;
+	private String ktpUrl;
+	private String kkUrl;
+	private String profileUrl;
 }

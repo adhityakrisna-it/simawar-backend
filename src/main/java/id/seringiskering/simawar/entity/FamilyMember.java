@@ -4,6 +4,7 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -38,6 +39,7 @@ public class FamilyMember implements Serializable {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="date_update")
+	@UpdateTimestamp
 	private Date dateUpdate;
 
 	@Column(name="family_status", length=100)
