@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +35,7 @@ import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
+import id.seringiskering.simawar.request.warga.FilterWargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.response.warga.WargaResponse;
@@ -53,6 +56,7 @@ public class WargaController {
 	private AuthenticationManager authenticationManager;
 	
 	@GetMapping("/findFamilyMember")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
 	public ResponseEntity<List<ListWargaResponse>> findFamilyMember() {
 		String username = jwtAuthorizationFilter.getValidUsername();
 		List<ListWargaResponse> response = wargaService.findFamilyMember(username);
@@ -65,6 +69,30 @@ public class WargaController {
 		String username = jwtAuthorizationFilter.getValidUsername();
 		WargaResponse response = wargaService.findFamilyMemberById(username, Long.parseLong(id));
 		return new ResponseEntity<WargaResponse>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findFamilyMemberByFilter")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<List<ListWargaResponse>> findFamilyMemberByFilter(@RequestBody FilterWargaRequest filter) {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListWargaResponse> response = wargaService.findFamilyMemberByFilter(filter);
+		return new ResponseEntity<> (response, HttpStatus.OK);
+	}
+
+	@GetMapping("/findFamilyMemberByFilterParam")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<List<ListWargaResponse>> findFamilyMemberByFilterParam(@RequestParam Map<String, String> params) {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		FilterWargaRequest filter = new FilterWargaRequest();
+		filter.setIsJenisKelamin(params.get("isJenisKelamin"));
+		filter.setSex(params.get("sex"));
+		filter.setIsUmur(params.get("isUmur"));
+		filter.setUmurAwal(params.get("umurAwal"));
+		filter.setUmurAkhir(params.get("umurAkhir"));
+		filter.setIsReligion(params.get("isReligion"));
+		filter.setReligion(params.get("religion"));
+		List<ListWargaResponse> response = wargaService.findFamilyMemberByFilter(filter);
+		return new ResponseEntity<> (response, HttpStatus.OK);
 	}
 	
 	@PostMapping("/updateWarga")
