@@ -155,6 +155,68 @@ public class WargaController {
 		wargaService.saveDataWarga("Edit", username, request, fotoProfile, fotoKtp, fotoKK);
 		return response(HttpStatus.OK,"Data warga berhasil disimpan");
 	}
+	
+	@PostMapping("/addWarga")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> addWarga(
+			@RequestParam("id") String id,
+			@RequestParam("addressAsId") String addressAsId,
+			@RequestParam("familyStatus") String familyStatus,
+			@RequestParam("kependudukanStatus") String kependudukanStatus,
+			@RequestParam("name") String name,
+			@RequestParam("noKk") String noKk,
+			@RequestParam("noKtp") String noKtp,
+			@RequestParam("phoneNumber1") String phoneNumber1,
+			@RequestParam("phoneNumber2") String phoneNumber2,
+			@RequestParam("phoneNumber3") String phoneNumber3,
+			@RequestParam("religion") String religion,
+			@RequestParam("sex") String sex,
+			@RequestParam("work") String work,
+			@RequestParam("address") String address,	
+			@RequestParam("birthDate") String birthDate,
+			@RequestParam("note") String note,
+			@RequestParam("bpjsNo") String bpjsNo,
+			@RequestParam("kisNo") String kisNo,
+			@RequestParam("bloodType") String bloodType,
+			@RequestParam("lastEducation") String lastEducation,
+			@RequestParam(value = "fotoProfile", required = false) MultipartFile fotoProfile,
+			@RequestParam(value = "fotoKtp", required = false) MultipartFile fotoKtp,
+			@RequestParam(value = "fotoKK", required = false) MultipartFile fotoKK			
+			) 
+			throws InvalidDataException, IOException, NotAnImageFileException, ParseException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		
+		SaveWargaRequest request = new SaveWargaRequest();
+		request.setAddressAsId(addressAsId);
+		request.setFamilyStatus(familyStatus);
+		request.setKependudukanStatus(kependudukanStatus);
+		request.setName(name);
+		request.setNoKk(noKk);
+		request.setNoKtp(noKtp);
+		request.setPhoneNumber1(phoneNumber1);
+		request.setPhoneNumber2(phoneNumber2);
+		request.setPhoneNumber3(phoneNumber3);
+		request.setReligion(religion);
+		request.setSex(sex);
+		request.setWork(work);
+		request.setAddress(address);
+		
+		LOGGER.info("PARSE BIRTHDATE : " + birthDate);
+		
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+		Date date = formatter.parse(birthDate);
+		
+		request.setBirthDate(date);
+		
+		request.setNote(note);
+		request.setBpjsNo(bpjsNo);
+		request.setKisNo(kisNo);
+		request.setBloodType(bloodType);
+		request.setLastEducation(lastEducation);		
+		
+		wargaService.saveDataWarga("Add", username, request, fotoProfile, fotoKtp, fotoKK);
+		return response(HttpStatus.OK,"Data warga berhasil disimpan");
+	}	
 
 	@GetMapping(path = "/data/profile/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
 	@PreAuthorize("hasAnyAuthority('warga:update')")

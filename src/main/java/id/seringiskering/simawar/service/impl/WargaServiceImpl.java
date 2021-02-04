@@ -37,9 +37,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import id.seringiskering.simawar.entity.FamilyMember;
+import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
+import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
@@ -53,6 +55,9 @@ public class WargaServiceImpl implements WargaService {
 	
 	@Autowired
 	private FamilyMemberRepository familyMemberRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
@@ -103,10 +108,14 @@ public class WargaServiceImpl implements WargaService {
 		
 		validateDataWarga(request.getNoKtp());
 		
+		User user = userRepository.findUserByUsername(username);
+				
+		
 		Optional<FamilyMember> warga;
 		FamilyMember saveWarga = null;
 		if (mode.equals("Add")) {
 			saveWarga = new FamilyMember();
+			saveWarga.setUser2(user);
 		}
 		if (mode.equals("Edit")) {
 			warga = familyMemberRepository.findById(request.getId());
@@ -120,7 +129,7 @@ public class WargaServiceImpl implements WargaService {
 		saveWarga.setAddressAsId(request.getAddressAsId());
 		saveWarga.setReligion(request.getReligion());
 		saveWarga.setKependudukanStatus(request.getKependudukanStatus());
-		saveWarga.setDateAdd(request.getBirthDate());
+		saveWarga.setBirthDate(request.getBirthDate());
 		saveWarga.setWork(request.getWork());
 		saveWarga.setFamilyStatus(request.getFamilyStatus());
 		saveWarga.setSex(request.getSex());
@@ -130,8 +139,9 @@ public class WargaServiceImpl implements WargaService {
 		saveWarga.setNoKk(request.getNoKk());
 		saveWarga.setNoKtp(request.getNoKtp());
 		saveWarga.setBpjsNo(request.getBpjsNo());
-		saveWarga.setKisNo(request.getKisNo());		
-		
+		saveWarga.setKisNo(request.getKisNo());
+		saveWarga.setAddress(request.getAddress());
+				
 		if (fotoWarga != null) {
 			saveImage(request.getNoKtp(), fotoWarga , "fotoProfile");
 			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
@@ -152,7 +162,7 @@ public class WargaServiceImpl implements WargaService {
 	
 	private void validateDataWarga(String dataKTP) throws InvalidDataException {
 		// TODO Auto-generated method stub
-		if (dataKTP.trim().equals(""))
+		if (dataKTP==null || dataKTP.trim().equals(""))
 		{
 			throw new InvalidDataException("Data KTP tidak tidak boleh kosong");
 		}
