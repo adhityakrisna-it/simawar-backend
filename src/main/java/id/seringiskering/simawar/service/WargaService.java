@@ -22,4 +22,5 @@ public interface WargaService {
 					   MultipartFile fotoKtp,
 					   MultipartFile fotoKK) throws InvalidDataException, IOException, NotAnImageFileException;
 	List<ListWargaResponse> findFamilyMemberByFilter(FilterWargaRequest filter);
+		
 }

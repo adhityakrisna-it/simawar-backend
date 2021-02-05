@@ -20,10 +20,17 @@ import java.util.Set;
 @NamedQuery(name="Family.findAll", query="SELECT f FROM Family f")
 public class Family implements Serializable {
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(unique=true, nullable=false)
-	private String id;
+	private Long id;
+
+	@Column(length=3)
+	private String blok;
+
+	@Column(length=200)
+	private String cluster;
 
 	@Column(name="family_name", nullable=false, length=100)
 	private String familyName;
@@ -34,24 +41,21 @@ public class Family implements Serializable {
 	@Column(name="persil_id", length=100)
 	private String persilId;
 
-	//bi-directional many-to-one association to User
-	@ManyToOne
-	@JoinColumn(name="user_id", nullable=false)
-	private User user1;
+	@Column(length=2)
+	private String rt;
 
-	//bi-directional many-to-one association to User
-	@ManyToOne
-	@JoinColumn(name="user_id_add", nullable=false)
-	private User user2;
+	@Column(length=2)
+	private String rw;
 
-	//bi-directional many-to-one association to User
-	@ManyToOne
-	@JoinColumn(name="user_id_edit")
-	private User user3;
+	@Column(name="user_id", nullable=false, length=100)
+	private String userId;
 
-	//bi-directional many-to-one association to FamilyMember
-	@OneToMany(mappedBy="family")
-	private Set<FamilyMember> familyMembers;
+	@Column(name="user_id_add", nullable=false, length=100)
+	private String userIdAdd;
+
+	@Column(name="user_id_edit", length=100)
+	private String userIdEdit;
+
 
 
 }
