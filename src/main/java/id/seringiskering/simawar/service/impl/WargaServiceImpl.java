@@ -36,14 +36,20 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import id.seringiskering.simawar.entity.Family;
 import id.seringiskering.simawar.entity.FamilyMember;
+import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
+import id.seringiskering.simawar.repository.FamilyRepository;
+import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
+import id.seringiskering.simawar.request.warga.SaveKeluargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.response.warga.WargaResponse;
 import id.seringiskering.simawar.service.WargaService;
@@ -58,6 +64,12 @@ public class WargaServiceImpl implements WargaService {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired 
+	private FamilyRepository familyRepository;
+	
+	@Autowired
+	private PersilRepository persilRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
@@ -159,14 +171,6 @@ public class WargaServiceImpl implements WargaService {
 		familyMemberRepository.save(saveWarga);
 		
 	}
-	
-	private void validateDataWarga(String dataKTP) throws InvalidDataException {
-		// TODO Auto-generated method stub
-		if (dataKTP==null || dataKTP.trim().equals(""))
-		{
-			throw new InvalidDataException("Data KTP tidak tidak boleh kosong");
-		}
-	}
 
 	private void saveImage(String sIdWarga, MultipartFile image, String jenisFile) 
 													throws IOException, NotAnImageFileException {
@@ -245,7 +249,92 @@ public class WargaServiceImpl implements WargaService {
 		
 		return listWarga;
 		
+	}
+
+	@Override
+	public List<ListKeluargaResponse> findFamily(String username) {
+		// TODO Auto-generated method stub
+		
+		List<Family> listFamily = familyRepository.findAll();
+		if (listFamily.size()>0) {
+			
+			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
+			for(Family family: listFamily) {
+				ListKeluargaResponse item = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item);
+				listKeluarga.add(item);
+			}
+			return listKeluarga;
+			
+		}		
+		
+		return null;
+	}
+
+	@Override
+	public ListKeluargaResponse findFamilyById(Long id) {
+		// TODO Auto-generated method stub
+		
+		Optional<Family> cekfamily = familyRepository.findById(id);
+		Family family = cekfamily.get();
+		
+		ListKeluargaResponse item = new ListKeluargaResponse();
+		BeanUtils.copyProperties(family, item);
+		
+		return item;
+	}
+
+	@Override
+	public void saveKeluarga(String mode, String username, SaveKeluargaRequest request) throws InvalidDataException {
+		// TODO Auto-generated method stub
+		validateDataKeluarga(request.getFamilyName());
+		User user = userRepository.findUserByUsername(username);
+		Family save = null;
+		if (mode.equals("Add")) {
+			save = new Family();
+			save.setUser1(user);
+			save.setUser2(user);
+		} else if (mode.equals("Edit")) {
+			Optional<Family> cek = familyRepository.findById(request.getId());
+			save = cek.get();
+		}
+		
+		save.setFamilyName(request.getFamilyName());
+		save.setKepemilikanStatus(request.getKepemilikanStatus());
+		save.setNote(request.getNote());
+		
+		Optional<Persil> persilcek = persilRepository.findById(request.getPersilId());
+		save.setPersil(persilcek.get());
+		
+		if (request.getFamilyMemberId().size()>0) {
+			for (String id: request.getFamilyMemberId()) {
+				Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
+				FamilyMember family = cekFamily.get();
+				family.setFamily(save);
+			}
+		}
+		
+		familyRepository.save(save);
+		
 	}	
+	
+	
+	private void validateDataWarga(String dataKTP) throws InvalidDataException {
+		// TODO Auto-generated method stub
+		if (dataKTP==null || dataKTP.trim().equals(""))
+		{
+			throw new InvalidDataException("Data KTP tidak tidak boleh kosong");
+		}
+	}
+	
+	private void validateDataKeluarga(String familyName) throws InvalidDataException {
+		// TODO Auto-generated method stub
+		if (familyName == null || familyName.trim().equals(""))
+		{
+			throw new InvalidDataException("Nama keluarga tidak tidak boleh kosong");
+		}
+	}
+	
 	
 
 }

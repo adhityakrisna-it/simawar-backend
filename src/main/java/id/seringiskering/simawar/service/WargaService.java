@@ -8,7 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
+import id.seringiskering.simawar.request.warga.SaveKeluargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.response.warga.WargaResponse;
 
@@ -22,5 +24,8 @@ public interface WargaService {
 					   MultipartFile fotoKtp,
 					   MultipartFile fotoKK) throws InvalidDataException, IOException, NotAnImageFileException;
 	List<ListWargaResponse> findFamilyMemberByFilter(FilterWargaRequest filter);
-		
+	List<ListKeluargaResponse> findFamily(String username);
+	ListKeluargaResponse findFamilyById(Long id);
+	void saveKeluarga(String mode, String username,
+					  SaveKeluargaRequest request) throws InvalidDataException;	
 }

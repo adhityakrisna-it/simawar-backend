@@ -36,7 +36,9 @@ import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
+import id.seringiskering.simawar.request.warga.SaveKeluargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.response.warga.WargaResponse;
 import id.seringiskering.simawar.service.WargaService;
@@ -63,12 +65,27 @@ public class WargaController {
 		return new ResponseEntity<> (response, HttpStatus.OK);
 	}
 	
+	@GetMapping("/findFamily")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<List<ListKeluargaResponse>> findFamily() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListKeluargaResponse> response = wargaService.findFamily(username);
+		return new ResponseEntity<List<ListKeluargaResponse>>(response, HttpStatus.OK);
+	}
+	
 	@GetMapping("/findFamilyMemberById/{id}")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
 	public ResponseEntity<WargaResponse> findFamilyMemberById(@PathVariable("id") String id) {
 		String username = jwtAuthorizationFilter.getValidUsername();
 		WargaResponse response = wargaService.findFamilyMemberById(username, Long.parseLong(id));
 		return new ResponseEntity<WargaResponse>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findFamilyById/{id}")
+	public ResponseEntity<ListKeluargaResponse> findFamilyById(@PathVariable("id") String id) {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		ListKeluargaResponse response = wargaService.findFamilyById(Long.parseLong(id));
+		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
 	}
 	
 	@GetMapping("/findFamilyMemberByFilter")
@@ -94,6 +111,26 @@ public class WargaController {
 		List<ListWargaResponse> response = wargaService.findFamilyMemberByFilter(filter);
 		return new ResponseEntity<> (response, HttpStatus.OK);
 	}
+	
+	@PostMapping("/addKeluarga")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> addKeluarga(@RequestBody SaveKeluargaRequest request) 
+												throws InvalidDataException {
+		
+		String username  = jwtAuthorizationFilter.getValidUsername();
+		wargaService.saveKeluarga("Add", username, request);
+		return response(HttpStatus.OK,"Data warga berhasil disimpan");
+	}
+	
+	@PostMapping("/updateKeluarga")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> updateKeluarga(@RequestBody SaveKeluargaRequest request) 
+												throws InvalidDataException {
+		
+		String username  = jwtAuthorizationFilter.getValidUsername();
+		wargaService.saveKeluarga("Edit", username, request);
+		return response(HttpStatus.OK,"Data warga berhasil disimpan");
+	}	
 	
 	@PostMapping("/updateWarga")
 	@PreAuthorize("hasAnyAuthority('warga:update')")

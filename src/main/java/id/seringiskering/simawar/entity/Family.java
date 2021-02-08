@@ -38,24 +38,38 @@ public class Family implements Serializable {
 	@Column(length=1000)
 	private String note;
 
-	@Column(name="persil_id", length=100)
-	private String persilId;
+	//bi-directional many-to-one association to Persil
+	@ManyToOne
+	@JoinColumn(name="persil_id")
+	private Persil persil;
 
 	@Column(length=2)
 	private String rt;
 
 	@Column(length=2)
 	private String rw;
+	
+	@Column(name="kepemilikan_status", length=20)
+	private String kepemilikanStatus;
 
-	@Column(name="user_id", nullable=false, length=100)
-	private String userId;
+	//bi-directional many-to-one association to User
+	@ManyToOne
+	@JoinColumn(name="user_id", nullable=false)
+	private User user1;
 
-	@Column(name="user_id_add", nullable=false, length=100)
-	private String userIdAdd;
+	//bi-directional many-to-one association to User
+	@ManyToOne
+	@JoinColumn(name="user_id_add", nullable=false)
+	private User user2;
 
-	@Column(name="user_id_edit", length=100)
-	private String userIdEdit;
-
+	//bi-directional many-to-one association to User
+	@ManyToOne
+	@JoinColumn(name="user_id_edit")
+	private User user3;
+	
+	//bi-directional many-to-one association to Family
+	@OneToMany(mappedBy="persil")
+	private Set<Family> families;	
 
 
 }
