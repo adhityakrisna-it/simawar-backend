@@ -38,6 +38,7 @@ import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
 import id.seringiskering.simawar.request.warga.SaveKeluargaRequest;
 import id.seringiskering.simawar.request.warga.SaveWargaRequest;
+import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.response.warga.WargaResponse;
@@ -56,22 +57,6 @@ public class WargaController {
 	
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	
-	@GetMapping("/findFamilyMember")
-	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<List<ListWargaResponse>> findFamilyMember() {
-		String username = jwtAuthorizationFilter.getValidUsername();
-		List<ListWargaResponse> response = wargaService.findFamilyMember(username);
-		return new ResponseEntity<> (response, HttpStatus.OK);
-	}
-	
-	@GetMapping("/findFamily")
-	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<List<ListKeluargaResponse>> findFamily() {
-		String username = jwtAuthorizationFilter.getValidUsername();
-		List<ListKeluargaResponse> response = wargaService.findFamily(username);
-		return new ResponseEntity<List<ListKeluargaResponse>>(response, HttpStatus.OK);
-	}
 	
 	@GetMapping("/findFamilyMemberById/{id}")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
@@ -281,13 +266,46 @@ public class WargaController {
 		String fileLocation = FileConstant.WARGA_FOLDER  + noktp + FileConstant.FORWARD_SLASH + "fotoKK" + DOT + JPG_EXTENSION;
 		LOGGER.info("Path File : " + fileLocation);
 		return Files.readAllBytes(Paths.get(fileLocation));
-	}	
+	}
+	
+	
+	@GetMapping("/findFamilyMember")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<List<ListWargaResponse>> findFamilyMember() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListWargaResponse> response = wargaService.findFamilyMember(username);
+		return new ResponseEntity<> (response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findFamily")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<List<ListKeluargaResponse>> findFamily() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListKeluargaResponse> response = wargaService.findFamily(username);
+		return new ResponseEntity<List<ListKeluargaResponse>>(response, HttpStatus.OK);
+	}
+	
+	@PostMapping("/updateProfileKeluarga")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<ListKeluargaResponse> updateProfileKeluarga(
+			@RequestParam("id") String id,
+			@RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws NumberFormatException, IOException, NotAnImageFileException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		ListKeluargaResponse response = wargaService.saveProfileKeluarga(username, Long.parseLong(id), profileImage);
+		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping(path = "/keluarga/profile/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public byte[] getProfileKeluargaImage(@PathVariable("id") String id) throws IOException
+	{
+		String fileLocation = FileConstant.KELUARGA_FOLDER  + id + FileConstant.FORWARD_SLASH + "profilekeluarga" + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		return Files.readAllBytes(Paths.get(fileLocation));
+	}
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub
 		return new ResponseEntity<> (new HttpResponse(httpStatus.value(),httpStatus, httpStatus.getReasonPhrase().toUpperCase(), message), httpStatus);
-	}		
-	
-	
+	}
 	
 }

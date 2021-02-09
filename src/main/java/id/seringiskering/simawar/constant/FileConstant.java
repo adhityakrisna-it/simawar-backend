@@ -5,6 +5,7 @@ public class FileConstant {
     public static final String JPG_EXTENSION = "jpg";
     public static final String USER_FOLDER = System.getProperty("user.home") + "/simawar/user/";
     public static final String WARGA_FOLDER = System.getProperty("user.home") + "/simawar/warga/";
+    public static final String KELUARGA_FOLDER = System.getProperty("user.home") + "/simawar/keluarga/";
     public static final String DIRECTORY_CREATED = "Created directory for: ";
     public static final String DEFAULT_USER_IMAGE_PATH = "/user/image/profile/";
     public static final String FILE_SAVED_IN_FILE_SYSTEM = "Saved file in file system by name: ";
@@ -15,4 +16,5 @@ public class FileConstant {
     public static final String FAMILY_MEMBER_PROFILE_PATH = "/warga/data/profile/";
     public static final String FAMILY_MEMBER_KTP_PATH = "/warga/data/ktp/";
     public static final String FAMILY_MEMBER_KK_PATH = "/warga/data/kk/";
+    public static final String MEMBER_PROFILE_PATH = "/warga/keluarga/profile/";
 }

@@ -37,6 +37,12 @@ public class Family implements Serializable {
 
 	@Column(length=1000)
 	private String note;
+	
+	@Column(length=1000)
+	private String profileUrl;
+
+	@Column(length=3)
+	private String nomor;
 
 	//bi-directional many-to-one association to Persil
 	@ManyToOne

@@ -18,4 +18,5 @@ public class ListWargaResponse {
 	private String ktpUrl;
 	private String kkUrl;
 	private String profileUrl;
+	private String familyName;
 }

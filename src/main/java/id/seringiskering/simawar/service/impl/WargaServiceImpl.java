@@ -9,6 +9,8 @@ import static id.seringiskering.simawar.constant.FileConstant.FILE_SAVED_IN_FILE
 import static id.seringiskering.simawar.constant.FileConstant.FORWARD_SLASH;
 import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
 import static id.seringiskering.simawar.constant.FileConstant.WARGA_FOLDER;
+import static id.seringiskering.simawar.constant.FileConstant.KELUARGA_FOLDER;
+import static id.seringiskering.simawar.constant.FileConstant.MEMBER_PROFILE_PATH;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import id.seringiskering.simawar.entity.Family;
@@ -56,37 +59,42 @@ import id.seringiskering.simawar.service.WargaService;
 
 @Service
 public class WargaServiceImpl implements WargaService {
-	
+
 	private Logger LOGGER = LoggerFactory.getLogger(getClass());
-	
+
 	@Autowired
 	private FamilyMemberRepository familyMemberRepository;
-	
+
 	@Autowired
 	private UserRepository userRepository;
-	
-	@Autowired 
+
+	@Autowired
 	private FamilyRepository familyRepository;
-	
+
 	@Autowired
 	private PersilRepository persilRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
 		// TODO Auto-generated method stub
-		
+
 		List<FamilyMember> familyMember = familyMemberRepository.findAll();
-		
-		if (familyMember.size()>0) {
+
+		if (familyMember.size() > 0) {
 			List<ListWargaResponse> listWarga = new ArrayList<ListWargaResponse>();
-			for (FamilyMember member: familyMember) {
+			for (FamilyMember member : familyMember) {
 				ListWargaResponse item = new ListWargaResponse();
 				BeanUtils.copyProperties(member, item);
+
+				if (member.getFamily() != null) {
+					item.setFamilyName(member.getFamily().getFamilyName());
+				}
+
 				listWarga.add(item);
 			}
 			return listWarga;
 		}
-		
+
 		return null;
 	}
 
@@ -94,35 +102,30 @@ public class WargaServiceImpl implements WargaService {
 	public WargaResponse findFamilyMemberById(String username, Long id) {
 		// TODO Auto-generated method stub
 		Optional<FamilyMember> member = familyMemberRepository.findById(id);
-		
+
 		if (member.isPresent()) {
 			FamilyMember warga = member.get();
 			WargaResponse response = new WargaResponse();
 			BeanUtils.copyProperties(warga, response);
-			
+
 			return response;
 		}
-		
+
 		return null;
 	}
 
 	@Override
-	public void saveDataWarga(
-			   String mode, 
-			   String username, 
-			   SaveWargaRequest request, 
-			   MultipartFile fotoWarga,
-			   MultipartFile fotoKtp,
-			   MultipartFile fotoKK) 
-					   throws InvalidDataException, IOException, NotAnImageFileException {
-		
+	@Transactional
+	public void saveDataWarga(String mode, String username, SaveWargaRequest request, MultipartFile fotoWarga,
+			MultipartFile fotoKtp, MultipartFile fotoKK)
+			throws InvalidDataException, IOException, NotAnImageFileException {
+
 		// TODO Auto-generated method stub
-		
+
 		validateDataWarga(request.getNoKtp());
-		
+
 		User user = userRepository.findUserByUsername(username);
-				
-		
+
 		Optional<FamilyMember> warga;
 		FamilyMember saveWarga = null;
 		if (mode.equals("Add")) {
@@ -133,7 +136,7 @@ public class WargaServiceImpl implements WargaService {
 			warga = familyMemberRepository.findById(request.getId());
 			saveWarga = warga.get();
 		}
-		
+
 		saveWarga.setName(request.getName());
 		saveWarga.setPhoneNumber1(request.getPhoneNumber1());
 		saveWarga.setPhoneNumber2(request.getPhoneNumber2());
@@ -153,28 +156,181 @@ public class WargaServiceImpl implements WargaService {
 		saveWarga.setBpjsNo(request.getBpjsNo());
 		saveWarga.setKisNo(request.getKisNo());
 		saveWarga.setAddress(request.getAddress());
-				
+
 		if (fotoWarga != null) {
-			saveImage(request.getNoKtp(), fotoWarga , "fotoProfile");
+			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
 			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
-			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp()); 
+			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
 		}
 		if (fotoKtp != null) {
 			saveImage(request.getNoKtp(), fotoKtp, "fotoKtp");
 			saveWarga.setKtpUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
 		}
-		if (fotoKK != null ) {
+		if (fotoKK != null) {
 			saveImage(request.getNoKtp(), fotoKK, "fotoKK");
 			saveWarga.setKkUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
 		}
-		
+
 		familyMemberRepository.save(saveWarga);
-		
+
 	}
 
-	private void saveImage(String sIdWarga, MultipartFile image, String jenisFile) 
-													throws IOException, NotAnImageFileException {
-		
+	@Override
+	public List<ListWargaResponse> findFamilyMemberByFilter(FilterWargaRequest filter) {
+		// TODO Auto-generated method stub
+
+		LOGGER.info("Filter with data : {} ", filter.toString());
+
+		List<FamilyMember> warga = familyMemberRepository.findAll(new Specification<FamilyMember>() {
+
+			@Override
+			public Predicate toPredicate(Root<FamilyMember> root, CriteriaQuery<?> query,
+					CriteriaBuilder criteriaBuilder) {
+				// TODO Auto-generated method stub
+				List<Predicate> predicates = new ArrayList<>();
+
+				if (filter.getIsUmur().equals("true")) {
+					Calendar cal = Calendar.getInstance();
+					Date today = cal.getTime();
+					cal.add(Calendar.YEAR, -Integer.parseInt(filter.getUmurAwal())); // to get previous year add -1
+					Date awalUmur = cal.getTime();
+					cal.add(Calendar.YEAR, -Integer.parseInt(filter.getUmurAkhir())); // to get previous year add -1
+					Date akhirUmur = cal.getTime();
+
+					LOGGER.info("Filter Awal : {} ", awalUmur);
+					LOGGER.info("Filter Akhir : {} ", akhirUmur);
+
+					predicates.add(criteriaBuilder.between(root.get("birthDate"), akhirUmur, awalUmur));
+
+				}
+
+				if (filter.getIsJenisKelamin().equals("true")) {
+					predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("sex"), filter.getSex())));
+				}
+
+				if (filter.getIsReligion().equals("true")) {
+					predicates.add(
+							criteriaBuilder.and(criteriaBuilder.equal(root.get("religion"), filter.getReligion())));
+				}
+
+				return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+			}
+		});
+
+		List<ListWargaResponse> listWarga = new ArrayList<ListWargaResponse>();
+		for (FamilyMember member : warga) {
+			ListWargaResponse item = new ListWargaResponse();
+			BeanUtils.copyProperties(member, item);
+			listWarga.add(item);
+		}
+
+		return listWarga;
+
+	}
+
+	@Override
+	public List<ListKeluargaResponse> findFamily(String username) {
+		// TODO Auto-generated method stub
+
+		List<Family> listFamily = familyRepository.findAll();
+		if (listFamily.size() > 0) {
+
+			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
+			for (Family family : listFamily) {
+				ListKeluargaResponse item = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item);
+				
+				item.setAddress(family.getCluster().toUpperCase() + " " + family.getBlok() + " " + family.getNomor());
+				
+				listKeluarga.add(item);
+			}
+			return listKeluarga;
+
+		}
+
+		return null;
+	}
+
+	@Override
+	public ListKeluargaResponse findFamilyById(Long id) {
+		// TODO Auto-generated method stub
+
+		Optional<Family> cekfamily = familyRepository.findById(id);
+		Family family = cekfamily.get();
+
+		ListKeluargaResponse item = new ListKeluargaResponse();
+		BeanUtils.copyProperties(family, item);
+
+		return item;
+	}
+
+	@Override
+	@Transactional
+	public void saveKeluarga(String mode, String username, SaveKeluargaRequest request) throws InvalidDataException {
+		// TODO Auto-generated method stub
+		validateDataKeluarga(request.getFamilyName());
+		User user = userRepository.findUserByUsername(username);
+		Family save = null;
+		if (mode.equals("Add")) {
+			save = new Family();
+			save.setUser1(user);
+			save.setUser2(user);
+		} else if (mode.equals("Edit")) {
+			Optional<Family> cek = familyRepository.findById(request.getId());
+			save = cek.get();
+		}
+
+		save.setFamilyName(request.getFamilyName());
+		save.setKepemilikanStatus(request.getKepemilikanStatus());
+		save.setNote(request.getNote());
+
+		Optional<Persil> persilcek = persilRepository.findById(request.getPersilId());
+		if (persilcek.isPresent()) {
+			save.setPersil(persilcek.get());
+			save.setRt(persilcek.get().getRtId().toString());
+			save.setRw(persilcek.get().getRwId().toString());
+			save.setCluster(persilcek.get().getClusterId());
+			save.setBlok(persilcek.get().getBlokId());
+			save.setNomor(String.valueOf(persilcek.get().getBlokNumber()));
+		}
+
+		if (request.getFamilyMemberId().size() > 0) {
+			for (String id : request.getFamilyMemberId()) {
+				Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
+				FamilyMember family = cekFamily.get();
+				family.setFamily(save);
+			}
+		}
+
+		familyRepository.save(save);
+
+	}
+
+	@Override
+	@Transactional
+	public ListKeluargaResponse saveProfileKeluarga(String username, Long id, MultipartFile fileFoto) throws IOException, NotAnImageFileException {
+		// TODO Auto-generated method stub
+
+		Optional<Family> familyCek = familyRepository.findById(id);
+		if (familyCek.isPresent()) {
+			saveImageKeluarga(id.toString(), fileFoto);
+			Family family = familyCek.get();
+			family.setProfileUrl(MEMBER_PROFILE_PATH + id.toString());
+			familyRepository.save(family);
+			
+			ListKeluargaResponse item = new ListKeluargaResponse();
+			BeanUtils.copyProperties(family, item);
+			
+			return item;
+			
+		}
+
+		return null;
+	}
+
+	private void saveImage(String sIdWarga, MultipartFile image, String jenisFile)
+			throws IOException, NotAnImageFileException {
+
 		// TODO Auto-generated method stub
 		if (image != null) {
 
@@ -199,142 +355,47 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}
 
-	@Override
-	public List<ListWargaResponse> findFamilyMemberByFilter(FilterWargaRequest filter) {
-		// TODO Auto-generated method stub
-		
-		LOGGER.info("Filter with data : {} ", filter.toString());
-		
-		List<FamilyMember> warga = familyMemberRepository.findAll(new Specification<FamilyMember>() {
-			
-			@Override
-			public Predicate toPredicate(Root<FamilyMember> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-				// TODO Auto-generated method stub
-				List<Predicate> predicates = new ArrayList<>();
-				
-				if (filter.getIsUmur().equals("true")) {
-					Calendar cal = Calendar.getInstance();
-					Date today = cal.getTime();
-					cal.add(Calendar.YEAR, -Integer.parseInt(filter.getUmurAwal())); // to get previous year add -1
-					Date awalUmur = cal.getTime();
-					cal.add(Calendar.YEAR, -Integer.parseInt(filter.getUmurAkhir())); // to get previous year add -1
-					Date akhirUmur = cal.getTime();
-					
-					LOGGER.info("Filter Awal : {} ", awalUmur);
-					LOGGER.info("Filter Akhir : {} ", akhirUmur);
-					
-                    predicates.add(criteriaBuilder.between(root.get("birthDate"), akhirUmur, awalUmur));
-					
-				}
-				
-				if (filter.getIsJenisKelamin().equals("true")) {
-	                   predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("sex"), filter.getSex())));
-				}
-					
-				if (filter.getIsReligion().equals("true")) {
-					predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("religion"), filter.getReligion())));
-				}
-				
-				return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-			}
-		});
-		
-		
-		List<ListWargaResponse> listWarga = new ArrayList<ListWargaResponse>();
-		for (FamilyMember member: warga) {
-			ListWargaResponse item = new ListWargaResponse();
-			BeanUtils.copyProperties(member, item);
-			listWarga.add(item);
-		}
-		
-		return listWarga;
-		
-	}
+	private void saveImageKeluarga(String sId, MultipartFile image)
+			throws IOException, NotAnImageFileException {
 
-	@Override
-	public List<ListKeluargaResponse> findFamily(String username) {
 		// TODO Auto-generated method stub
-		
-		List<Family> listFamily = familyRepository.findAll();
-		if (listFamily.size()>0) {
-			
-			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
-			for(Family family: listFamily) {
-				ListKeluargaResponse item = new ListKeluargaResponse();
-				BeanUtils.copyProperties(family, item);
-				listKeluarga.add(item);
-			}
-			return listKeluarga;
-			
-		}		
-		
-		return null;
-	}
+		if (image != null) {
 
-	@Override
-	public ListKeluargaResponse findFamilyById(Long id) {
-		// TODO Auto-generated method stub
-		
-		Optional<Family> cekfamily = familyRepository.findById(id);
-		Family family = cekfamily.get();
-		
-		ListKeluargaResponse item = new ListKeluargaResponse();
-		BeanUtils.copyProperties(family, item);
-		
-		return item;
-	}
-
-	@Override
-	public void saveKeluarga(String mode, String username, SaveKeluargaRequest request) throws InvalidDataException {
-		// TODO Auto-generated method stub
-		validateDataKeluarga(request.getFamilyName());
-		User user = userRepository.findUserByUsername(username);
-		Family save = null;
-		if (mode.equals("Add")) {
-			save = new Family();
-			save.setUser1(user);
-			save.setUser2(user);
-		} else if (mode.equals("Edit")) {
-			Optional<Family> cek = familyRepository.findById(request.getId());
-			save = cek.get();
-		}
-		
-		save.setFamilyName(request.getFamilyName());
-		save.setKepemilikanStatus(request.getKepemilikanStatus());
-		save.setNote(request.getNote());
-		
-		Optional<Persil> persilcek = persilRepository.findById(request.getPersilId());
-		save.setPersil(persilcek.get());
-		
-		if (request.getFamilyMemberId().size()>0) {
-			for (String id: request.getFamilyMemberId()) {
-				Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
-				FamilyMember family = cekFamily.get();
-				family.setFamily(save);
+			if (!Arrays.asList(MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE)
+					.contains(image.getContentType())) {
+				throw new NotAnImageFileException(image.getOriginalFilename() + " is not an image file");
 			}
+
+			Path userFolder = Paths.get(KELUARGA_FOLDER + sId).toAbsolutePath().normalize();
+			if (!Files.exists(userFolder)) {
+				Files.createDirectories(userFolder);
+				LOGGER.info(DIRECTORY_CREATED + userFolder);
+			}
+			Files.deleteIfExists(Paths.get(userFolder + sId + FORWARD_SLASH + "profilekeluarga" + DOT + JPG_EXTENSION));
+			try {
+				Files.copy(image.getInputStream(), userFolder.resolve("profilekeluarga" + DOT + JPG_EXTENSION),
+						StandardCopyOption.REPLACE_EXISTING);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			LOGGER.info(FILE_SAVED_IN_FILE_SYSTEM);
 		}
-		
-		familyRepository.save(save);
-		
-	}	
-	
+	}
 	
 	private void validateDataWarga(String dataKTP) throws InvalidDataException {
 		// TODO Auto-generated method stub
-		if (dataKTP==null || dataKTP.trim().equals(""))
-		{
+		if (dataKTP == null || dataKTP.trim().equals("")) {
 			throw new InvalidDataException("Data KTP tidak tidak boleh kosong");
 		}
 	}
-	
+
 	private void validateDataKeluarga(String familyName) throws InvalidDataException {
 		// TODO Auto-generated method stub
-		if (familyName == null || familyName.trim().equals(""))
-		{
+		if (familyName == null || familyName.trim().equals("")) {
 			throw new InvalidDataException("Nama keluarga tidak tidak boleh kosong");
 		}
 	}
-	
+
 	
 
 }

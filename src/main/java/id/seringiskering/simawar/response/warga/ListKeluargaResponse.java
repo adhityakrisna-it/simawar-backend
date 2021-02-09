@@ -16,4 +16,7 @@ public class ListKeluargaResponse {
 	private String rt;
 	private String rw;
 	private String kepemilikanStatus;
+	private String profileUrl;
+	private String address;
+	private String nomor;
 }
