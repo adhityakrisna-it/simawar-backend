@@ -107,7 +107,7 @@ public class FamilyMember implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="family_id")
 	private Family family;
-
+	
 	//bi-directional many-to-one association to User
 	@ManyToOne
 	@JoinColumn(name="user_id_edit")

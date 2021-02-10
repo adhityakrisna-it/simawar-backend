@@ -3,7 +3,11 @@ package id.seringiskering.simawar.controller;
 import static id.seringiskering.simawar.constant.FileConstant.DOT;
 import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
@@ -13,6 +17,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
+import org.imgscalr.Scalr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -300,7 +307,25 @@ public class WargaController {
 	{
 		String fileLocation = FileConstant.KELUARGA_FOLDER  + id + FileConstant.FORWARD_SLASH + "profilekeluarga" + DOT + JPG_EXTENSION;
 		LOGGER.info("Path File : " + fileLocation);
-		return Files.readAllBytes(Paths.get(fileLocation));
+		byte[] filebyte = Files.readAllBytes(Paths.get(fileLocation));
+		
+		int size = 40; // size dalam pixel
+		
+		InputStream input = new ByteArrayInputStream(filebyte);
+		BufferedImage image = ImageIO.read(input);
+		int width = image.getWidth();
+		int height = image.getHeight();
+		if (size > 0) {
+			if (width * height > size * size) {
+				image = Scalr.resize(image, size);
+			}
+		}
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write(image, "jpg", baos);
+		byte[] byteArray = baos.toByteArray();
+		
+		return byteArray;//Files.readAllBytes(Paths.get(fileLocation));
 	}
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {

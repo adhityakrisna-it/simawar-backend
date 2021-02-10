@@ -1,5 +1,8 @@
 package id.seringiskering.simawar.response.warga;
 
+import java.util.List;
+
+import id.seringiskering.simawar.entity.FamilyMember;
 import id.seringiskering.simawar.entity.Persil;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,4 +22,5 @@ public class ListKeluargaResponse {
 	private String profileUrl;
 	private String address;
 	private String nomor;
+	private List<ListWargaResponse> familyMember;
 }

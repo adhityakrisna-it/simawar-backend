@@ -73,9 +73,9 @@ public class Family implements Serializable {
 	@JoinColumn(name="user_id_edit")
 	private User user3;
 	
-	//bi-directional many-to-one association to Family
-	@OneToMany(mappedBy="persil")
-	private Set<Family> families;	
+	//bi-directional many-to-one association to FamilyMember
+	@OneToMany(mappedBy="family")
+	private Set<FamilyMember> familyMembers;
 
 
 }

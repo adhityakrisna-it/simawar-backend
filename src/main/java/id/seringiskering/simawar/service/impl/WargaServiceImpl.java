@@ -240,6 +240,17 @@ public class WargaServiceImpl implements WargaService {
 				ListKeluargaResponse item = new ListKeluargaResponse();
 				BeanUtils.copyProperties(family, item);
 				
+				if (family.getFamilyMembers().size()>0) {
+					List<ListWargaResponse> members = new ArrayList<ListWargaResponse>();
+					for (FamilyMember member: family.getFamilyMembers()) {
+						ListWargaResponse listwarga = new ListWargaResponse();
+						BeanUtils.copyProperties(member, listwarga);
+						
+						members.add(listwarga);
+					}
+					item.setFamilyMember(members);
+				}
+				
 				item.setAddress(family.getCluster().toUpperCase() + " " + family.getBlok() + " " + family.getNomor());
 				
 				listKeluarga.add(item);
@@ -260,6 +271,19 @@ public class WargaServiceImpl implements WargaService {
 
 		ListKeluargaResponse item = new ListKeluargaResponse();
 		BeanUtils.copyProperties(family, item);
+		
+		if (family.getFamilyMembers().size()>0) {
+			List<ListWargaResponse> members = new ArrayList<ListWargaResponse>();
+			for (FamilyMember member: family.getFamilyMembers()) {
+				ListWargaResponse listwarga = new ListWargaResponse();
+				BeanUtils.copyProperties(member, listwarga);
+				
+				members.add(listwarga);
+			}
+			item.setFamilyMember(members);
+		}
+		
+		item.setAddress(family.getCluster().toUpperCase() + " " + family.getBlok() + " " + family.getNomor());		
 
 		return item;
 	}
