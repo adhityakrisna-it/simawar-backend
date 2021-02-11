@@ -11,6 +11,7 @@ import static id.seringiskering.simawar.constant.FileConstant.JPG_EXTENSION;
 import static id.seringiskering.simawar.constant.FileConstant.WARGA_FOLDER;
 import static id.seringiskering.simawar.constant.FileConstant.KELUARGA_FOLDER;
 import static id.seringiskering.simawar.constant.FileConstant.MEMBER_PROFILE_PATH;
+import static id.seringiskering.simawar.constant.FileConstant.MEMBER_KK_PATH;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -302,6 +303,16 @@ public class WargaServiceImpl implements WargaService {
 		} else if (mode.equals("Edit")) {
 			Optional<Family> cek = familyRepository.findById(request.getId());
 			save = cek.get();
+			save.setUser1(user);
+			
+			Optional<List<FamilyMember>> resetMember = familyMemberRepository.findByFamilyId(request.getId());
+			if (resetMember.isPresent()) {
+				List<FamilyMember> familymembers = resetMember.get();
+				for (FamilyMember familymember: familymembers) {
+					familymember.setFamily(null);
+				}
+			}
+			
 		}
 
 		save.setFamilyName(request.getFamilyName());
@@ -337,9 +348,31 @@ public class WargaServiceImpl implements WargaService {
 
 		Optional<Family> familyCek = familyRepository.findById(id);
 		if (familyCek.isPresent()) {
-			saveImageKeluarga(id.toString(), fileFoto);
+			saveImageKeluarga(id.toString(), fileFoto, "profilekeluarga");
 			Family family = familyCek.get();
 			family.setProfileUrl(MEMBER_PROFILE_PATH + id.toString());
+			familyRepository.save(family);
+			
+			ListKeluargaResponse item = new ListKeluargaResponse();
+			BeanUtils.copyProperties(family, item);
+			
+			return item;
+			
+		}
+
+		return null;
+	}
+	
+	@Override
+	@Transactional
+	public ListKeluargaResponse saveKKKeluarga(String username, Long id, MultipartFile fileFoto) throws IOException, NotAnImageFileException {
+		// TODO Auto-generated method stub
+
+		Optional<Family> familyCek = familyRepository.findById(id);
+		if (familyCek.isPresent()) {
+			saveImageKeluarga(id.toString(), fileFoto, "kkkeluarga");
+			Family family = familyCek.get();
+			family.setKkUrl(MEMBER_KK_PATH + id.toString());
 			familyRepository.save(family);
 			
 			ListKeluargaResponse item = new ListKeluargaResponse();
@@ -379,7 +412,7 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}
 
-	private void saveImageKeluarga(String sId, MultipartFile image)
+	private void saveImageKeluarga(String sId, MultipartFile image, String filename)
 			throws IOException, NotAnImageFileException {
 
 		// TODO Auto-generated method stub
@@ -395,9 +428,9 @@ public class WargaServiceImpl implements WargaService {
 				Files.createDirectories(userFolder);
 				LOGGER.info(DIRECTORY_CREATED + userFolder);
 			}
-			Files.deleteIfExists(Paths.get(userFolder + sId + FORWARD_SLASH + "profilekeluarga" + DOT + JPG_EXTENSION));
+			Files.deleteIfExists(Paths.get(userFolder + sId + FORWARD_SLASH + filename + DOT + JPG_EXTENSION));
 			try {
-				Files.copy(image.getInputStream(), userFolder.resolve("profilekeluarga" + DOT + JPG_EXTENSION),
+				Files.copy(image.getInputStream(), userFolder.resolve(filename + DOT + JPG_EXTENSION),
 						StandardCopyOption.REPLACE_EXISTING);
 			} catch (Exception ex) {
 				ex.printStackTrace();

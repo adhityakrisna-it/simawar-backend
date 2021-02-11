@@ -31,4 +31,7 @@ public interface WargaService {
 					  SaveKeluargaRequest request) throws InvalidDataException;	
 	ListKeluargaResponse saveProfileKeluarga(String username, Long id, MultipartFile fileFoto) 
 			throws IOException, NotAnImageFileException;
+	ListKeluargaResponse saveKKKeluarga(String username, Long id, MultipartFile fileFoto) 
+			throws IOException, NotAnImageFileException;
+	
 }

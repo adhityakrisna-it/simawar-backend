@@ -55,6 +55,9 @@ public class Family implements Serializable {
 	@Column(length=2)
 	private String rw;
 	
+	@Column(name="kk_url", length=1000)
+	private String kkUrl;	
+	
 	@Column(name="kepemilikan_status", length=20)
 	private String kepemilikanStatus;
 

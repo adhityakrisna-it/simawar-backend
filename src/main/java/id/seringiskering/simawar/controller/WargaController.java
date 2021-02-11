@@ -302,14 +302,62 @@ public class WargaController {
 		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
 	}
 	
+	@PostMapping("/updateKKKeluarga")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<ListKeluargaResponse> updateKKKeluarga(
+			@RequestParam("id") String id,
+			@RequestParam(value = "kkImage", required = false) MultipartFile kkImage) throws NumberFormatException, IOException, NotAnImageFileException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		ListKeluargaResponse response = wargaService.saveKKKeluarga(username, Long.parseLong(id), kkImage);
+		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
+	}
+	
 	@GetMapping(path = "/keluarga/profile/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
 	public byte[] getProfileKeluargaImage(@PathVariable("id") String id) throws IOException
 	{
 		String fileLocation = FileConstant.KELUARGA_FOLDER  + id + FileConstant.FORWARD_SLASH + "profilekeluarga" + DOT + JPG_EXTENSION;
 		LOGGER.info("Path File : " + fileLocation);
 		byte[] filebyte = Files.readAllBytes(Paths.get(fileLocation));
+		return filebyte;
+	}
+	
+	@GetMapping(path = "/keluarga/kk/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public byte[] getKKKeluargaImage(@PathVariable("id") String id) throws IOException
+	{
+		String fileLocation = FileConstant.KELUARGA_FOLDER  + id + FileConstant.FORWARD_SLASH + "kkkeluarga" + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		byte[] filebyte = Files.readAllBytes(Paths.get(fileLocation));
+		return filebyte;
+	}
+	
+
+	@GetMapping(path = "/keluarga/profile/{id}/{view}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public byte[] getProfileKeluargaImageThumbnail(
+													@PathVariable("id") String id, 
+													@PathVariable("view") String view) throws IOException
+	{
+		return getCustomKeluargaImage(id, view, "profilekeluarga");  //byteArray;//Files.readAllBytes(Paths.get(fileLocation));
+	}
+	
+	@GetMapping(path = "/keluarga/kk/{id}/{view}", produces = MediaType.IMAGE_JPEG_VALUE)
+	public byte[] getKKKeluargaImageThumbnail(
+													@PathVariable("id") String id, 
+													@PathVariable("view") String view) throws IOException
+	{
+		return getCustomKeluargaImage(id, view, "kkkeluarga");  //byteArray;//Files.readAllBytes(Paths.get(fileLocation));
+	}
+	
+	
+	private byte[] getCustomKeluargaImage(String id, String view, String filename) 
+			throws IOException {
+		String fileLocation = FileConstant.KELUARGA_FOLDER  + id + FileConstant.FORWARD_SLASH + filename + DOT + JPG_EXTENSION;
+		LOGGER.info("Path File : " + fileLocation);
+		byte[] filebyte = Files.readAllBytes(Paths.get(fileLocation));
 		
-		int size = 40; // size dalam pixel
+		int size = 40;
+		if (view.equals("preview")) {
+			size = 100;
+		}
 		
 		InputStream input = new ByteArrayInputStream(filebyte);
 		BufferedImage image = ImageIO.read(input);
@@ -317,7 +365,7 @@ public class WargaController {
 		int height = image.getHeight();
 		if (size > 0) {
 			if (width * height > size * size) {
-				image = Scalr.resize(image, size);
+				image = Scalr.resize(image, size, size);
 			}
 		}
 		
@@ -326,8 +374,8 @@ public class WargaController {
 		byte[] byteArray = baos.toByteArray();
 		
 		return byteArray;//Files.readAllBytes(Paths.get(fileLocation));
+		
 	}
-	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub
 		return new ResponseEntity<> (new HttpResponse(httpStatus.value(),httpStatus, httpStatus.getReasonPhrase().toUpperCase(), message), httpStatus);

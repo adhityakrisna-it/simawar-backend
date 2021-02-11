@@ -20,6 +20,7 @@ public class ListKeluargaResponse {
 	private String rw;
 	private String kepemilikanStatus;
 	private String profileUrl;
+	private String kkUrl;
 	private String address;
 	private String nomor;
 	private List<ListWargaResponse> familyMember;
