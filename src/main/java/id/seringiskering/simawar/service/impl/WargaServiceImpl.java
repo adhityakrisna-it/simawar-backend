@@ -42,10 +42,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import id.seringiskering.simawar.entity.Family;
 import id.seringiskering.simawar.entity.FamilyMember;
+import id.seringiskering.simawar.entity.FamilyMemberDeleted;
+import id.seringiskering.simawar.entity.FamilyMemberDeletedPK;
 import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
+import id.seringiskering.simawar.repository.FamilyMemberDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
 import id.seringiskering.simawar.repository.FamilyRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
@@ -74,6 +77,9 @@ public class WargaServiceImpl implements WargaService {
 
 	@Autowired
 	private PersilRepository persilRepository;
+	
+	@Autowired
+	private FamilyMemberDeletedRepository familyMemberDeletedRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
@@ -384,6 +390,50 @@ public class WargaServiceImpl implements WargaService {
 
 		return null;
 	}
+	
+
+	@Override
+	public ListWargaResponse findListFamilyMemberById(String username, Long id) {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		Optional<FamilyMember> member = familyMemberRepository.findById(id);
+
+		if (member.isPresent()) {
+			FamilyMember warga = member.get();
+			ListWargaResponse response = new ListWargaResponse();
+			BeanUtils.copyProperties(warga, response);
+
+			return response;
+		}
+
+		return null;		
+	}
+	
+
+	@Override
+	@Transactional
+	public void deleteDataWarga(String username, Long id) {
+		// TODO Auto-generated method stub
+		Optional<FamilyMember> cekmember = familyMemberRepository.findById(id);
+		
+		if (cekmember.isPresent()) {
+			FamilyMember familymember = cekmember.get();
+			FamilyMemberDeleted deleted = new FamilyMemberDeleted();
+			FamilyMemberDeletedPK pkdeleted = new FamilyMemberDeletedPK();
+			pkdeleted.setId(id);
+			pkdeleted.setDateLog(new Date());
+			deleted.setId(pkdeleted);
+			
+			BeanUtils.copyProperties(familymember, deleted);
+			deleted.setUserIdAdd(familymember.getUser1() == null ? null : familymember.getUser1().getUserId());
+			deleted.setUserIdEdit(familymember.getUser2() == null ? null : familymember.getUser2().getUserId());
+			
+			familyMemberDeletedRepository.save(deleted);
+			
+			familyMemberRepository.delete(familymember);			
+			
+		}
+	}	
 
 	private void saveImage(String sIdWarga, MultipartFile image, String jenisFile)
 			throws IOException, NotAnImageFileException {
@@ -453,6 +503,68 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}
 
-	
+	@Override
+	public ListWargaResponse saveWarga(String mode, String username, SaveWargaRequest request, MultipartFile fotoWarga,
+			MultipartFile fotoKtp, MultipartFile fotoKK)
+			throws InvalidDataException, IOException, NotAnImageFileException {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
 
+		validateDataWarga(request.getNoKtp());
+
+		User user = userRepository.findUserByUsername(username);
+
+		Optional<FamilyMember> warga;
+		FamilyMember saveWarga = null;
+		if (mode.equals("Add")) {
+			saveWarga = new FamilyMember();
+			saveWarga.setUser2(user);
+		}
+		if (mode.equals("Edit")) {
+			warga = familyMemberRepository.findById(request.getId());
+			saveWarga = warga.get();
+		}
+
+		saveWarga.setName(request.getName());
+		saveWarga.setPhoneNumber1(request.getPhoneNumber1());
+		saveWarga.setPhoneNumber2(request.getPhoneNumber2());
+		saveWarga.setPhoneNumber3(request.getPhoneNumber3());
+		saveWarga.setAddressAsId(request.getAddressAsId());
+		saveWarga.setReligion(request.getReligion());
+		saveWarga.setKependudukanStatus(request.getKependudukanStatus());
+		saveWarga.setBirthDate(request.getBirthDate());
+		saveWarga.setWork(request.getWork());
+		saveWarga.setFamilyStatus(request.getFamilyStatus());
+		saveWarga.setSex(request.getSex());
+		saveWarga.setNote(request.getNote());
+		saveWarga.setBloodType(request.getBloodType());
+		saveWarga.setLastEducation(request.getLastEducation());
+		saveWarga.setNoKk(request.getNoKk());
+		saveWarga.setNoKtp(request.getNoKtp());
+		saveWarga.setBpjsNo(request.getBpjsNo());
+		saveWarga.setKisNo(request.getKisNo());
+		saveWarga.setAddress(request.getAddress());
+
+		if (fotoWarga != null) {
+			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
+			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
+			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
+		}
+		if (fotoKtp != null) {
+			saveImage(request.getNoKtp(), fotoKtp, "fotoKtp");
+			saveWarga.setKtpUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
+		}
+		if (fotoKK != null) {
+			saveImage(request.getNoKtp(), fotoKK, "fotoKK");
+			saveWarga.setKkUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
+		}
+
+		FamilyMember result = familyMemberRepository.save(saveWarga);
+		
+		ListWargaResponse response = new ListWargaResponse();
+		BeanUtils.copyProperties(result, response);
+		
+		return response;
+	}
+	
 }

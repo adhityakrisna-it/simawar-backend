@@ -18,12 +18,20 @@ import id.seringiskering.simawar.response.warga.WargaResponse;
 public interface WargaService {
 	List<ListWargaResponse> findFamilyMember(String username);
 	WargaResponse findFamilyMemberById(String username, Long id);
+	ListWargaResponse findListFamilyMemberById(String username, Long id);
 	void saveDataWarga(String mode, 
 					   String username, 
 					   SaveWargaRequest request, 
 					   MultipartFile fotoWarga,
 					   MultipartFile fotoKtp,
 					   MultipartFile fotoKK) throws InvalidDataException, IOException, NotAnImageFileException;
+	ListWargaResponse saveWarga(String mode, 
+			   String username, 
+			   SaveWargaRequest request, 
+			   MultipartFile fotoWarga,
+			   MultipartFile fotoKtp,
+			   MultipartFile fotoKK) throws InvalidDataException, IOException, NotAnImageFileException;
+	
 	List<ListWargaResponse> findFamilyMemberByFilter(FilterWargaRequest filter);
 	List<ListKeluargaResponse> findFamily(String username);
 	ListKeluargaResponse findFamilyById(Long id);
@@ -33,5 +41,7 @@ public interface WargaService {
 			throws IOException, NotAnImageFileException;
 	ListKeluargaResponse saveKKKeluarga(String username, Long id, MultipartFile fileFoto) 
 			throws IOException, NotAnImageFileException;
+	
+	void deleteDataWarga(String username, Long id);
 	
 }

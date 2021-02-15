@@ -28,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,6 +72,14 @@ public class WargaController {
 		String username = jwtAuthorizationFilter.getValidUsername();
 		WargaResponse response = wargaService.findFamilyMemberById(username, Long.parseLong(id));
 		return new ResponseEntity<WargaResponse>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/findSimpleFamilyMemberById/{id}")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<ListWargaResponse>findSimpleFamilyMemberById(@PathVariable("id") String id) {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		ListWargaResponse response = wargaService.findListFamilyMemberById(username, Long.parseLong(id));
+		return new ResponseEntity<ListWargaResponse>(response, HttpStatus.OK);
 	}
 	
 	@GetMapping("/findFamilyById/{id}")
@@ -123,6 +132,14 @@ public class WargaController {
 		wargaService.saveKeluarga("Edit", username, request);
 		return response(HttpStatus.OK,"Data warga berhasil disimpan");
 	}	
+	
+	@DeleteMapping("/deleteWarga/{id}")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> updateWarga(@PathVariable(name = "id") String id) {
+		String username  = jwtAuthorizationFilter.getValidUsername();
+		wargaService.deleteDataWarga(username, Long.parseLong(id));
+		return response(HttpStatus.OK,"Data warga berhasil dihapus");
+	}
 	
 	@PostMapping("/updateWarga")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
@@ -187,7 +204,7 @@ public class WargaController {
 	
 	@PostMapping("/addWarga")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<HttpResponse> addWarga(
+	public ResponseEntity<ListWargaResponse> addWarga(
 			@RequestParam("id") String id,
 			@RequestParam("addressAsId") String addressAsId,
 			@RequestParam("familyStatus") String familyStatus,
@@ -243,8 +260,8 @@ public class WargaController {
 		request.setBloodType(bloodType);
 		request.setLastEducation(lastEducation);		
 		
-		wargaService.saveDataWarga("Add", username, request, fotoProfile, fotoKtp, fotoKK);
-		return response(HttpStatus.OK,"Data warga berhasil disimpan");
+		ListWargaResponse response = wargaService.saveWarga("Add", username, request, fotoProfile, fotoKtp, fotoKK);
+		return new ResponseEntity<ListWargaResponse>(response, HttpStatus.OK);
 	}	
 
 	@GetMapping(path = "/data/profile/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
