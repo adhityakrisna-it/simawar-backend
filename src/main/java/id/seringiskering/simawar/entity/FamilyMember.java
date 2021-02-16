@@ -120,5 +120,8 @@ public class FamilyMember implements Serializable {
 	
 	@Column(length=100)
 	private String address;	
+	
+	@Column(length=100)
+	private String email;	
 
 }

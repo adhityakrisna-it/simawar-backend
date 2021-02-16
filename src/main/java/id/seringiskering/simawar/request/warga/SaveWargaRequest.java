@@ -33,12 +33,13 @@ public class SaveWargaRequest {
 	private String kisNo;
 	private String bloodType;
 	private String lastEducation;
+	private String email;
 	
 	public SaveWargaRequest(Long id, String addressAsId, Date dateAdd, Date dateUpdate, String familyStatus,
 			String kependudukanStatus, String kkUrl, String ktpUrl, String name, String noKk, String noKtp,
 			String phoneNumber1, String phoneNumber2, String phoneNumber3, String profileUrl, String religion,
 			String sex, String work, String address, Date birthDate, String note, String bpjsNo, String kisNo,
-			String bloodType, String lastEducation) {
+			String bloodType, String lastEducation, String email) {
 		super();
 		this.id = id;
 		this.addressAsId = addressAsId;
@@ -65,6 +66,7 @@ public class SaveWargaRequest {
 		this.kisNo = kisNo;
 		this.bloodType = bloodType;
 		this.lastEducation = lastEducation;
+		this.email = email;
 	}
 
 	public SaveWargaRequest() {
@@ -121,6 +123,14 @@ public class SaveWargaRequest {
 
 	public void setKependudukanStatus(String kependudukanStatus) {
 		this.kependudukanStatus = kependudukanStatus;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public String getKkUrl() {

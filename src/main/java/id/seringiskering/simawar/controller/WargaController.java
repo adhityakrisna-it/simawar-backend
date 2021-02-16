@@ -135,10 +135,18 @@ public class WargaController {
 	
 	@DeleteMapping("/deleteWarga/{id}")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<HttpResponse> updateWarga(@PathVariable(name = "id") String id) {
+	public ResponseEntity<HttpResponse> deleteWarga(@PathVariable(name = "id") String id) {
 		String username  = jwtAuthorizationFilter.getValidUsername();
 		wargaService.deleteDataWarga(username, Long.parseLong(id));
 		return response(HttpStatus.OK,"Data warga berhasil dihapus");
+	}
+	
+	@DeleteMapping("/deleteKeluarga/{id}")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> deleteKeluarga(@PathVariable(name = "id") String id) {
+		String username  = jwtAuthorizationFilter.getValidUsername();
+		wargaService.deleteDataKeluarga(username, Long.parseLong(id));
+		return response(HttpStatus.OK,"Data keluarga berhasil dihapus");
 	}
 	
 	@PostMapping("/updateWarga")
@@ -164,6 +172,7 @@ public class WargaController {
 			@RequestParam("kisNo") String kisNo,
 			@RequestParam("bloodType") String bloodType,
 			@RequestParam("lastEducation") String lastEducation,
+			@RequestParam("email") String email,
 			@RequestParam(value = "fotoProfile", required = false) MultipartFile fotoProfile,
 			@RequestParam(value = "fotoKtp", required = false) MultipartFile fotoKtp,
 			@RequestParam(value = "fotoKK", required = false) MultipartFile fotoKK			
@@ -186,6 +195,7 @@ public class WargaController {
 		request.setSex(sex);
 		request.setWork(work);
 		request.setAddress(address);
+		request.setEmail(email);
 		
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
 		Date date = formatter.parse(birthDate);
@@ -225,6 +235,7 @@ public class WargaController {
 			@RequestParam("kisNo") String kisNo,
 			@RequestParam("bloodType") String bloodType,
 			@RequestParam("lastEducation") String lastEducation,
+			@RequestParam("email") String email,
 			@RequestParam(value = "fotoProfile", required = false) MultipartFile fotoProfile,
 			@RequestParam(value = "fotoKtp", required = false) MultipartFile fotoKtp,
 			@RequestParam(value = "fotoKK", required = false) MultipartFile fotoKK			
@@ -246,6 +257,7 @@ public class WargaController {
 		request.setSex(sex);
 		request.setWork(work);
 		request.setAddress(address);
+		request.setEmail(email);
 		
 		LOGGER.info("PARSE BIRTHDATE : " + birthDate);
 		

@@ -104,5 +104,8 @@ public class FamilyMemberDeleted implements Serializable {
 
 	@Column(length=100)
 	private String work;
+	
+	@Column(length=100)
+	private String email;	
 
 }

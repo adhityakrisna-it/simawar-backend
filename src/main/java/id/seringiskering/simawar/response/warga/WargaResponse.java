@@ -33,5 +33,5 @@ public class WargaResponse {
 	private String kisNo;
 	private String bloodType;
 	private String lastEducation;
-	
+	private String email;
 }

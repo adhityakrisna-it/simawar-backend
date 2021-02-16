@@ -41,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import id.seringiskering.simawar.entity.Family;
+import id.seringiskering.simawar.entity.FamilyDeleted;
+import id.seringiskering.simawar.entity.FamilyDeletedPK;
 import id.seringiskering.simawar.entity.FamilyMember;
 import id.seringiskering.simawar.entity.FamilyMemberDeleted;
 import id.seringiskering.simawar.entity.FamilyMemberDeletedPK;
@@ -48,6 +50,7 @@ import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
+import id.seringiskering.simawar.repository.FamilyDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
 import id.seringiskering.simawar.repository.FamilyRepository;
@@ -80,6 +83,9 @@ public class WargaServiceImpl implements WargaService {
 	
 	@Autowired
 	private FamilyMemberDeletedRepository familyMemberDeletedRepository;
+	
+	@Autowired
+	private FamilyDeletedRepository familyDeletedRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
@@ -163,6 +169,7 @@ public class WargaServiceImpl implements WargaService {
 		saveWarga.setBpjsNo(request.getBpjsNo());
 		saveWarga.setKisNo(request.getKisNo());
 		saveWarga.setAddress(request.getAddress());
+		saveWarga.setEmail(request.getEmail());
 
 		if (fotoWarga != null) {
 			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
@@ -435,6 +442,39 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}	
 
+	@Override
+	@Transactional
+	public void deleteDataKeluarga(String username, Long id) {
+		// TODO Auto-generated method stub
+		Optional<Family> cekfamily = familyRepository.findById(id);
+		User cekuser = userRepository.findUserByUsername(username);
+		
+		if (cekfamily.isPresent()) {
+			Family family = cekfamily.get();
+			Optional<List<FamilyMember>> cekfamilymember = familyMemberRepository.findByFamilyId(id);
+			if (cekfamilymember.isPresent()) {
+				for (FamilyMember familymember: cekfamilymember.get()) {
+					familymember.setFamily(null);
+				}
+			}
+			
+			FamilyDeleted deleted = new FamilyDeleted();
+			FamilyDeletedPK pkdeleted = new FamilyDeletedPK();
+			pkdeleted.setId(id);
+			pkdeleted.setDateLog(new Date());
+			
+			BeanUtils.copyProperties(family, deleted);
+			
+			deleted.setUser(cekuser);
+			deleted.setId(pkdeleted);
+			familyDeletedRepository.save(deleted);
+			
+			familyRepository.delete(family);
+			
+		}
+		
+	}
+
 	private void saveImage(String sIdWarga, MultipartFile image, String jenisFile)
 			throws IOException, NotAnImageFileException {
 
@@ -544,6 +584,7 @@ public class WargaServiceImpl implements WargaService {
 		saveWarga.setBpjsNo(request.getBpjsNo());
 		saveWarga.setKisNo(request.getKisNo());
 		saveWarga.setAddress(request.getAddress());
+		saveWarga.setEmail(request.getEmail());
 
 		if (fotoWarga != null) {
 			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
@@ -566,5 +607,6 @@ public class WargaServiceImpl implements WargaService {
 		
 		return response;
 	}
+
 	
 }
