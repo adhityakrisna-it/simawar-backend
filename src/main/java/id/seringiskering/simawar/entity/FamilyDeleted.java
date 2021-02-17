@@ -62,5 +62,14 @@ public class FamilyDeleted implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="user_id")
 	private User user;
+	
+	@Column(name="user_id_add", length=100)
+	private String userIdAdd;
+
+	@Column(name="user_id_delete", length=100)
+	private String userIdDelete;
+
+	@Column(name="user_id_edit", length=100)
+	private String userIdEdit;
 
 }

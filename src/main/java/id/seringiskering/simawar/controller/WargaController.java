@@ -20,6 +20,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -387,16 +388,26 @@ public class WargaController {
 		if (view.equals("preview")) {
 			size = 100;
 		}
+		if (view.equals("dashboard")) {
+			size = 200;
+		}
 		
 		InputStream input = new ByteArrayInputStream(filebyte);
 		BufferedImage image = ImageIO.read(input);
 		int width = image.getWidth();
 		int height = image.getHeight();
-		if (size > 0) {
-			if (width * height > size * size) {
-				image = Scalr.resize(image, size, size);
+		if (view.equals("preview") || view.equals("thumbnail") ) {
+			if (size > 0) {
+				if (width * height > size * size) {
+					image = Scalr.resize(image, size, size);
+				}
 			}
+			
+		} else if (view.equals("dashboard")) {
+			LOGGER.info("RESIZING FOR DASHBOARD PURPOSE");
+			image = Scalr.resize(image, Mode.FIT_EXACT, 500, 326);
 		}
+ 
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(image, "jpg", baos);

@@ -187,6 +187,72 @@ public class WargaServiceImpl implements WargaService {
 
 		familyMemberRepository.save(saveWarga);
 
+	}	
+
+	@Override
+	@Transactional
+	public ListWargaResponse saveWarga(String mode, String username, SaveWargaRequest request, MultipartFile fotoWarga,
+			MultipartFile fotoKtp, MultipartFile fotoKK)
+			throws InvalidDataException, IOException, NotAnImageFileException {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+
+		validateDataWarga(request.getNoKtp());
+
+		User user = userRepository.findUserByUsername(username);
+
+		Optional<FamilyMember> warga;
+		FamilyMember saveWarga = null;
+		if (mode.equals("Add")) {
+			saveWarga = new FamilyMember();
+			saveWarga.setUser2(user);
+		}
+		if (mode.equals("Edit")) {
+			warga = familyMemberRepository.findById(request.getId());
+			saveWarga = warga.get();
+		}
+
+		saveWarga.setName(request.getName());
+		saveWarga.setPhoneNumber1(request.getPhoneNumber1());
+		saveWarga.setPhoneNumber2(request.getPhoneNumber2());
+		saveWarga.setPhoneNumber3(request.getPhoneNumber3());
+		saveWarga.setAddressAsId(request.getAddressAsId());
+		saveWarga.setReligion(request.getReligion());
+		saveWarga.setKependudukanStatus(request.getKependudukanStatus());
+		saveWarga.setBirthDate(request.getBirthDate());
+		saveWarga.setWork(request.getWork());
+		saveWarga.setFamilyStatus(request.getFamilyStatus());
+		saveWarga.setSex(request.getSex());
+		saveWarga.setNote(request.getNote());
+		saveWarga.setBloodType(request.getBloodType());
+		saveWarga.setLastEducation(request.getLastEducation());
+		saveWarga.setNoKk(request.getNoKk());
+		saveWarga.setNoKtp(request.getNoKtp());
+		saveWarga.setBpjsNo(request.getBpjsNo());
+		saveWarga.setKisNo(request.getKisNo());
+		saveWarga.setAddress(request.getAddress());
+		saveWarga.setEmail(request.getEmail());
+
+		if (fotoWarga != null) {
+			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
+			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
+			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
+		}
+		if (fotoKtp != null) {
+			saveImage(request.getNoKtp(), fotoKtp, "fotoKtp");
+			saveWarga.setKtpUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
+		}
+		if (fotoKK != null) {
+			saveImage(request.getNoKtp(), fotoKK, "fotoKK");
+			saveWarga.setKkUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
+		}
+
+		FamilyMember result = familyMemberRepository.save(saveWarga);
+		
+		ListWargaResponse response = new ListWargaResponse();
+		BeanUtils.copyProperties(result, response);
+		
+		return response;
 	}
 
 	@Override
@@ -543,70 +609,6 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}
 
-	@Override
-	public ListWargaResponse saveWarga(String mode, String username, SaveWargaRequest request, MultipartFile fotoWarga,
-			MultipartFile fotoKtp, MultipartFile fotoKK)
-			throws InvalidDataException, IOException, NotAnImageFileException {
-		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
-
-		validateDataWarga(request.getNoKtp());
-
-		User user = userRepository.findUserByUsername(username);
-
-		Optional<FamilyMember> warga;
-		FamilyMember saveWarga = null;
-		if (mode.equals("Add")) {
-			saveWarga = new FamilyMember();
-			saveWarga.setUser2(user);
-		}
-		if (mode.equals("Edit")) {
-			warga = familyMemberRepository.findById(request.getId());
-			saveWarga = warga.get();
-		}
-
-		saveWarga.setName(request.getName());
-		saveWarga.setPhoneNumber1(request.getPhoneNumber1());
-		saveWarga.setPhoneNumber2(request.getPhoneNumber2());
-		saveWarga.setPhoneNumber3(request.getPhoneNumber3());
-		saveWarga.setAddressAsId(request.getAddressAsId());
-		saveWarga.setReligion(request.getReligion());
-		saveWarga.setKependudukanStatus(request.getKependudukanStatus());
-		saveWarga.setBirthDate(request.getBirthDate());
-		saveWarga.setWork(request.getWork());
-		saveWarga.setFamilyStatus(request.getFamilyStatus());
-		saveWarga.setSex(request.getSex());
-		saveWarga.setNote(request.getNote());
-		saveWarga.setBloodType(request.getBloodType());
-		saveWarga.setLastEducation(request.getLastEducation());
-		saveWarga.setNoKk(request.getNoKk());
-		saveWarga.setNoKtp(request.getNoKtp());
-		saveWarga.setBpjsNo(request.getBpjsNo());
-		saveWarga.setKisNo(request.getKisNo());
-		saveWarga.setAddress(request.getAddress());
-		saveWarga.setEmail(request.getEmail());
-
-		if (fotoWarga != null) {
-			saveImage(request.getNoKtp(), fotoWarga, "fotoProfile");
-			LOGGER.info("KTP PATH : " + FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
-			saveWarga.setProfileUrl(FAMILY_MEMBER_PROFILE_PATH + request.getNoKtp());
-		}
-		if (fotoKtp != null) {
-			saveImage(request.getNoKtp(), fotoKtp, "fotoKtp");
-			saveWarga.setKtpUrl(FAMILY_MEMBER_KTP_PATH + request.getNoKtp());
-		}
-		if (fotoKK != null) {
-			saveImage(request.getNoKtp(), fotoKK, "fotoKK");
-			saveWarga.setKkUrl(FAMILY_MEMBER_KK_PATH + request.getNoKtp());
-		}
-
-		FamilyMember result = familyMemberRepository.save(saveWarga);
-		
-		ListWargaResponse response = new ListWargaResponse();
-		BeanUtils.copyProperties(result, response);
-		
-		return response;
-	}
 
 	
 }
