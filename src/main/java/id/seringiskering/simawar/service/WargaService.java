@@ -41,6 +41,8 @@ public interface WargaService {
 			throws IOException, NotAnImageFileException;
 	ListKeluargaResponse saveKKKeluarga(String username, Long id, MultipartFile fileFoto) 
 			throws IOException, NotAnImageFileException;
+	ListKeluargaResponse saveRumahKeluarga(String username, Long id, MultipartFile fileFoto) 
+			throws IOException, NotAnImageFileException;
 	
 	void deleteDataWarga(String username, Long id);
 	void deleteDataKeluarga(String username, Long id);

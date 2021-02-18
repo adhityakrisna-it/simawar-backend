@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,6 +17,7 @@ import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.response.dashboard.CardResponse;
 import id.seringiskering.simawar.response.dashboard.InfoIuranResponse;
+import id.seringiskering.simawar.response.warga.InfoKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.service.DashboardService;
 import id.seringiskering.simawar.service.WargaService;
@@ -52,6 +54,13 @@ public class DashboardController {
 		List<ListKeluargaResponse> response = dashboardService.findAllKeluarga(username);
 		return new ResponseEntity<List<ListKeluargaResponse>>(response, HttpStatus.OK);
 	}	
+	
+	@GetMapping("/findFamilyById/{id}")
+	public ResponseEntity<InfoKeluargaResponse> findFamilyById(@PathVariable("id") String id) {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		InfoKeluargaResponse response = dashboardService.findFamilyById(username, Long.valueOf(id));
+		return new ResponseEntity<InfoKeluargaResponse>(response, HttpStatus.OK);
+	}
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
 		// TODO Auto-generated method stub

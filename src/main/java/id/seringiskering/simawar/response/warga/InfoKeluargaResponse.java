@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ListKeluargaResponse {
+public class InfoKeluargaResponse {
 	private Long id;
 	private String blok;
 	private String cluster;
@@ -22,7 +22,7 @@ public class ListKeluargaResponse {
 	private String kkUrl;
 	private String address;
 	private String nomor;
-	private List<ListWargaResponse> familyMember;
+	private List<InfoWargaResponse> familyMember;
 	private String familyProfileUrl;
 	private String greeting;
 }

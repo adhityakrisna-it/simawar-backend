@@ -21,6 +21,8 @@ import id.seringiskering.simawar.repository.MasterInfoRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.response.dashboard.CardResponse;
 import id.seringiskering.simawar.response.dashboard.InfoIuranResponse;
+import id.seringiskering.simawar.response.warga.InfoKeluargaResponse;
+import id.seringiskering.simawar.response.warga.InfoWargaResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.service.DashboardService;
@@ -159,6 +161,31 @@ public class DashboardServiceImpl implements DashboardService {
 		}
 
 		return null;
+	}
+
+	@Override
+	public InfoKeluargaResponse findFamilyById(String username, Long id) {
+		// TODO Auto-generated method stub
+		Optional<Family> cekfamily = familyRepository.findById(id);
+		Family family = cekfamily.get();
+
+		InfoKeluargaResponse item = new InfoKeluargaResponse();
+		BeanUtils.copyProperties(family, item);
+		
+		if (family.getFamilyMembers().size()>0) {
+			List<InfoWargaResponse> members = new ArrayList<InfoWargaResponse>();
+			for (FamilyMember member: family.getFamilyMembers()) {
+				InfoWargaResponse listwarga = new InfoWargaResponse();
+				BeanUtils.copyProperties(member, listwarga);
+				
+				members.add(listwarga);
+			}
+			item.setFamilyMember(members);
+		}
+		
+		item.setAddress(family.getCluster().toUpperCase() + " " + family.getBlok() + " " + family.getNomor());		
+
+		return item;
 	}
 
 }

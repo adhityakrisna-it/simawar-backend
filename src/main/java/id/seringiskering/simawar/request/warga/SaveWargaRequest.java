@@ -130,7 +130,7 @@ public class SaveWargaRequest {
 	}
 
 	public void setEmail(String email) {
-		this.email = email;
+		this.email = email.equals("null") ? null : email;
 	}
 
 	public String getKkUrl() {

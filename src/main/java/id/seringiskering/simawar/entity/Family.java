@@ -60,6 +60,12 @@ public class Family implements Serializable {
 	
 	@Column(name="kepemilikan_status", length=20)
 	private String kepemilikanStatus;
+	
+	@Column(name="family_profile_url", length=1000)
+	private String familyProfileUrl;
+
+	@Column(length=1000)
+	private String greeting;
 
 	//bi-directional many-to-one association to User
 	@ManyToOne

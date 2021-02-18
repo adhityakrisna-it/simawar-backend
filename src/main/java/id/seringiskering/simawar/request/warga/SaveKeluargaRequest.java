@@ -2,6 +2,8 @@ package id.seringiskering.simawar.request.warga;
 
 import java.util.List;
 
+import javax.persistence.Column;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,4 +17,5 @@ public class SaveKeluargaRequest {
 	private String persilId;
 	private String kepemilikanStatus;
 	private List<String> familyMemberId;
+	private String greeting;
 }

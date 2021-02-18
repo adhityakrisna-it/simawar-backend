@@ -12,6 +12,7 @@ import static id.seringiskering.simawar.constant.FileConstant.WARGA_FOLDER;
 import static id.seringiskering.simawar.constant.FileConstant.KELUARGA_FOLDER;
 import static id.seringiskering.simawar.constant.FileConstant.MEMBER_PROFILE_PATH;
 import static id.seringiskering.simawar.constant.FileConstant.MEMBER_KK_PATH;
+import static id.seringiskering.simawar.constant.FileConstant.MEMBER_HOME_PATH;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -397,6 +398,7 @@ public class WargaServiceImpl implements WargaService {
 		save.setFamilyName(request.getFamilyName());
 		save.setKepemilikanStatus(request.getKepemilikanStatus());
 		save.setNote(request.getNote());
+		save.setGreeting(request.getGreeting());
 
 		Optional<Persil> persilcek = persilRepository.findById(request.getPersilId());
 		if (persilcek.isPresent()) {
@@ -464,6 +466,27 @@ public class WargaServiceImpl implements WargaService {
 		return null;
 	}
 	
+
+	@Override
+	@Transactional
+	public ListKeluargaResponse saveRumahKeluarga(String username, Long id, MultipartFile fileFoto)
+			throws IOException, NotAnImageFileException {
+		Optional<Family> familyCek = familyRepository.findById(id);
+		if (familyCek.isPresent()) {
+			saveImageKeluarga(id.toString(), fileFoto, "rumahkeluarga");
+			Family family = familyCek.get();
+			family.setFamilyProfileUrl(MEMBER_HOME_PATH + id.toString());
+			familyRepository.save(family);
+			
+			ListKeluargaResponse item = new ListKeluargaResponse();
+			BeanUtils.copyProperties(family, item);
+			
+			return item;
+			
+		}
+
+		return null;
+	}
 
 	@Override
 	public ListWargaResponse findListFamilyMemberById(String username, Long id) {
@@ -608,7 +631,5 @@ public class WargaServiceImpl implements WargaService {
 			throw new InvalidDataException("Nama keluarga tidak tidak boleh kosong");
 		}
 	}
-
-
 	
 }

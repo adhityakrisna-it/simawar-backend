@@ -18,4 +18,5 @@ public class FileConstant {
     public static final String FAMILY_MEMBER_KK_PATH = "/warga/data/kk/";
     public static final String MEMBER_PROFILE_PATH = "/warga/keluarga/profile/";
     public static final String MEMBER_KK_PATH = "/warga/keluarga/kk/";
+    public static final String MEMBER_HOME_PATH = "/warga/keluarga/home/";
 }
