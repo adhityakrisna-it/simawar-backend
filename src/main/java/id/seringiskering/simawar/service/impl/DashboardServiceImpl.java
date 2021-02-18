@@ -166,6 +166,7 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public InfoKeluargaResponse findFamilyById(String username, Long id) {
 		// TODO Auto-generated method stub
+		//		Optional<Family> cekfamily = familyRepository.findByIdorderbyfamily(id);
 		Optional<Family> cekfamily = familyRepository.findById(id);
 		Family family = cekfamily.get();
 
@@ -174,7 +175,10 @@ public class DashboardServiceImpl implements DashboardService {
 		
 		if (family.getFamilyMembers().size()>0) {
 			List<InfoWargaResponse> members = new ArrayList<InfoWargaResponse>();
-			for (FamilyMember member: family.getFamilyMembers()) {
+			Optional<List<FamilyMember>> cekfamilies = familyMemberRepository.findByFamilyIdOrderByBirthDate(id);
+			List<FamilyMember> families = cekfamilies.get();
+			//for (FamilyMember member: family.getFamilyMembers()) {
+			for (FamilyMember member: families) {
 				InfoWargaResponse listwarga = new InfoWargaResponse();
 				BeanUtils.copyProperties(member, listwarga);
 				
