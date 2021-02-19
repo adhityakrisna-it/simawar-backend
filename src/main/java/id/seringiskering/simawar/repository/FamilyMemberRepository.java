@@ -28,6 +28,9 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
 
 	@Query("SELECT COUNT(u.id) from FamilyMember u where birthDate between :start AND :now ")
     Optional<Integer> getJumlahWargaRangeUsia(Optional<Date> start, Optional<Date> now);
-
+	
+	Optional<List<FamilyMember>> findByFamilyIdOrderByFamilyStatus(Long id);
+	
+	Optional<List<FamilyMember>> findByFamilyIdOrderByKedudukanAscBirthDateAsc(Long id);
 	
 }

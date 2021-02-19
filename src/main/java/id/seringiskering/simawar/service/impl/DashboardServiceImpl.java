@@ -173,9 +173,11 @@ public class DashboardServiceImpl implements DashboardService {
 		InfoKeluargaResponse item = new InfoKeluargaResponse();
 		BeanUtils.copyProperties(family, item);
 		
+		
+		
 		if (family.getFamilyMembers().size()>0) {
 			List<InfoWargaResponse> members = new ArrayList<InfoWargaResponse>();
-			Optional<List<FamilyMember>> cekfamilies = familyMemberRepository.findByFamilyIdOrderByBirthDate(id);
+			Optional<List<FamilyMember>> cekfamilies = familyMemberRepository.findByFamilyIdOrderByKedudukanAscBirthDateAsc(id);
 			List<FamilyMember> families = cekfamilies.get();
 			//for (FamilyMember member: family.getFamilyMembers()) {
 			for (FamilyMember member: families) {

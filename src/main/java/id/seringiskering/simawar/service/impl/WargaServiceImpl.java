@@ -355,7 +355,10 @@ public class WargaServiceImpl implements WargaService {
 		
 		if (family.getFamilyMembers().size()>0) {
 			List<ListWargaResponse> members = new ArrayList<ListWargaResponse>();
-			for (FamilyMember member: family.getFamilyMembers()) {
+			Optional<List<FamilyMember>> cekfamilies = familyMemberRepository.findByFamilyIdOrderByKedudukanAscBirthDateAsc(id);
+			List<FamilyMember> families = cekfamilies.get();			
+			//for (FamilyMember member: family.getFamilyMembers()) {
+			for (FamilyMember member: families) {
 				ListWargaResponse listwarga = new ListWargaResponse();
 				BeanUtils.copyProperties(member, listwarga);
 				
@@ -421,6 +424,65 @@ public class WargaServiceImpl implements WargaService {
 		familyRepository.save(save);
 
 	}
+	
+
+	@Override
+	public ListKeluargaResponse addKeluarga(String mode, String username, SaveKeluargaRequest request)
+			throws InvalidDataException {
+		// TODO Auto-generated method stub
+		validateDataKeluarga(request.getFamilyName());
+		User user = userRepository.findUserByUsername(username);
+		Family save = null;
+		if (mode.equals("Add")) {
+			save = new Family();
+			save.setUser1(user);
+			save.setUser2(user);
+		} else if (mode.equals("Edit")) {
+			Optional<Family> cek = familyRepository.findById(request.getId());
+			save = cek.get();
+			save.setUser1(user);
+			
+			Optional<List<FamilyMember>> resetMember = familyMemberRepository.findByFamilyId(request.getId());
+			if (resetMember.isPresent()) {
+				List<FamilyMember> familymembers = resetMember.get();
+				for (FamilyMember familymember: familymembers) {
+					familymember.setFamily(null);
+				}
+			}
+			
+		}
+
+		save.setFamilyName(request.getFamilyName());
+		save.setKepemilikanStatus(request.getKepemilikanStatus());
+		save.setNote(request.getNote());
+		save.setGreeting(request.getGreeting());
+
+		Optional<Persil> persilcek = persilRepository.findById(request.getPersilId());
+		if (persilcek.isPresent()) {
+			save.setPersil(persilcek.get());
+			save.setRt(persilcek.get().getRtId().toString());
+			save.setRw(persilcek.get().getRwId().toString());
+			save.setCluster(persilcek.get().getClusterId());
+			save.setBlok(persilcek.get().getBlokId());
+			save.setNomor(String.valueOf(persilcek.get().getBlokNumber()));
+		}
+
+		if (request.getFamilyMemberId().size() > 0) {
+			for (String id : request.getFamilyMemberId()) {
+				Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
+				FamilyMember family = cekFamily.get();
+				family.setFamily(save);
+			}
+		}
+
+		familyRepository.save(save);
+		
+		ListKeluargaResponse item = new ListKeluargaResponse();
+		BeanUtils.copyProperties(save, item);  
+		
+		return item;
+		
+	}	
 
 	@Override
 	@Transactional

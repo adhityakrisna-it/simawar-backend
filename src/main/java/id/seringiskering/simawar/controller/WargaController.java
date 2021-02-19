@@ -116,12 +116,12 @@ public class WargaController {
 	
 	@PostMapping("/addKeluarga")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<HttpResponse> addKeluarga(@RequestBody SaveKeluargaRequest request) 
+	public ResponseEntity<ListKeluargaResponse> addKeluarga(@RequestBody SaveKeluargaRequest request) 
 												throws InvalidDataException {
 		
 		String username  = jwtAuthorizationFilter.getValidUsername();
-		wargaService.saveKeluarga("Add", username, request);
-		return response(HttpStatus.OK,"Data warga berhasil disimpan");
+		ListKeluargaResponse response  = wargaService.addKeluarga("Add", username, request);
+		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
 	}
 	
 	@PostMapping("/updateKeluarga")

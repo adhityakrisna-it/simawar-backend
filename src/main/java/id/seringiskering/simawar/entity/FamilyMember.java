@@ -4,6 +4,7 @@ import java.io.Serializable;
 import javax.persistence.*;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import lombok.Getter;
@@ -122,6 +123,19 @@ public class FamilyMember implements Serializable {
 	private String address;	
 	
 	@Column(length=100)
-	private String email;	
+	private String email;
+	
+	@Formula("CASE\r\n"
+			+ "    WHEN family_status='KEPALA KELUARGA' THEN 1\r\n"
+			+ "    WHEN family_status='ISTRI' THEN 2\r\n"
+			+ "    WHEN family_status='MERTUA' THEN 3\r\n"
+			+ "    WHEN family_status='SUAMI' THEN 4\r\n"
+			+ "    WHEN family_status='AYAH' THEN 5\r\n"
+			+ "    WHEN family_status='IBU' THEN 6\r\n"
+			+ "    WHEN family_status='ANAK' THEN 7\r\n"
+			+ "    ELSE 8\r\n"
+			+ "	END")
+	private int kedudukan;
+	
 
 }

@@ -11,6 +11,8 @@ public interface PersilRepository extends JpaRepository<Persil, String> {
 	
 	List<Persil> findPersilByClusterIdAndBlokIdAndBlokNumberAndBlokIdentity(String clusterId, String blokId, int blokNumber, String blokIdentity);
 	
+	List<Persil> findAllByOrderByBlokIdAscBlokNumberAsc();
+	
 	@Query("SELECT COUNT(u.persilId) from Persil u")
     int getJumlahPersil();
 

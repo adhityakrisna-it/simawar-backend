@@ -18,7 +18,8 @@ public class PersilServiceImpl implements PersilService {
 	@Override
 	public List<Persil> findPersilByUsername(String username) {
 		// TODO Auto-generated method stub
-		return persilRepository.findAll();
+		//return persilRepository.findAll();
+		return persilRepository.findAllByOrderByBlokIdAscBlokNumberAsc();
 	}
 
 }
