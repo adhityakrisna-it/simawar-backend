@@ -28,7 +28,8 @@ public interface RegisterService {
 			 				String dataRW,
 			 				String dataRT,
 			 				String rw,
-			 				String rt
+			 				String rt,
+			 				String familyId
 			 				) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
 	
 	void disapproveUserRegister(String username, Long id) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;

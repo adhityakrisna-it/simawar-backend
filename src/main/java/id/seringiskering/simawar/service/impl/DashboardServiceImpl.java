@@ -133,7 +133,8 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public List<ListKeluargaResponse> findAllKeluarga(String username) {
 		// TODO Auto-generated method stub
-		List<Family> listFamily = familyRepository.findAll();
+		//List<Family> listFamily = familyRepository.findAll();
+		List<Family> listFamily = familyRepository.findAllByOrderByClusterAscBlokAscNomorAsc();
 		if (listFamily.size() > 0) {
 
 			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();

@@ -47,6 +47,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.constant.UserImplConstant;
 import id.seringiskering.simawar.domain.UserPrincipal;
+import id.seringiskering.simawar.entity.Family;
+import id.seringiskering.simawar.entity.FamilyMember;
+import id.seringiskering.simawar.entity.FamilyUserOwner;
+import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.entity.UserPersil;
 import id.seringiskering.simawar.entity.UserRegister;
@@ -59,9 +63,13 @@ import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.FamilyRepository;
+import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.response.user.UserResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
+import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.service.EmailService;
 import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
@@ -77,6 +85,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	private UserRepository userRepository;
 	private UserPersilRepository userPersilRepository;
+	private FamilyRepository familyRepository;
+	private FamilyUserOwnerRepository familyUserOwnerRepository; 
 
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -87,12 +97,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	@Autowired
 	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
 			LoginAttemptService loginAttemptService, EmailService emailService,
-			UserPersilRepository userPersilRepository) {
+			UserPersilRepository userPersilRepository, FamilyRepository familyRepository,
+			FamilyUserOwnerRepository familyUserOwnerRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.loginAttemptService = loginAttemptService;
 		this.emailService = emailService;
 		this.userPersilRepository = userPersilRepository;
+		this.familyRepository = familyRepository;
+		this.familyUserOwnerRepository = familyUserOwnerRepository;
 	}
 
 	@Override
@@ -480,7 +493,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			String dataRw,
 			String dataRt,
 			String rw,
-			String rt) throws UserNotFoundException, EmailExistException, JsonProcessingException {
+			String rt,
+			String familyId) throws UserNotFoundException, EmailExistException, JsonProcessingException {
 		// TODO Auto-generated method stub
 
 		User currentUser = validateNewEmail(editedUsername, newEmail);
@@ -528,9 +542,46 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			currentUser.setUserPersil(userPersil);
 		}
 		userRepository.save(currentUser);
-
+		
+		Optional<List<FamilyUserOwner>> cekfamilyowner = familyUserOwnerRepository.findByIdUserId(currentUser.getUserId());
+		if (cekfamilyowner.isPresent()) {
+			for (FamilyUserOwner familyOwner: cekfamilyowner.get()) {
+				familyUserOwnerRepository.delete(familyOwner);
+			}
+		}
+		
+		if (familyId != null) {
+        	FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
+        	idowner.setId(Long.parseLong(familyId));
+        	idowner.setUserId(currentUser.getUserId());
+        	FamilyUserOwner familyOwner = new FamilyUserOwner();
+        	familyOwner.setId(idowner);
+        	familyUserOwnerRepository.save(familyOwner);
+		}
+		
 		return;
 	}	
+	
+
+	@Override
+	public List<ListKeluargaResponse> findFamilyByUser(String username) {
+		// TODO Auto-generated method stub
+		
+		Optional<List<Family>> cekFamily = familyRepository.findByLeftJoinFamilyUser();
+		
+		if (cekFamily.isPresent()) {
+			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
+			for (Family family : cekFamily.get()) {
+				ListKeluargaResponse item = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item);
+				listKeluarga.add(item);
+			}
+			return listKeluarga;
+		}
+		
+		return null;
+	}
+	
 
 	private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
 		// TODO Auto-generated method stub
@@ -610,8 +661,5 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 		return jsonProfile;
 	}
-	
-	
-
 
 }

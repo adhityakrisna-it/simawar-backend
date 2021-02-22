@@ -50,4 +50,6 @@ public interface WargaService {
 	void deleteDataWarga(String username, Long id);
 	void deleteDataKeluarga(String username, Long id);
 	
+	ListKeluargaResponse findFamilyByUser(String username);
+	
 }

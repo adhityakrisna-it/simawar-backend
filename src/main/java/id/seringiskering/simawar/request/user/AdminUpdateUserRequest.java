@@ -22,4 +22,5 @@ public class AdminUpdateUserRequest {
 	String dataRt;
 	String rt;
 	String rw;
+	String familyId;
 }

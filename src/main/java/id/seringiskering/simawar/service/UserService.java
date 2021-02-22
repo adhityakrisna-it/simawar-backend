@@ -18,6 +18,7 @@ import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.response.user.UserResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 
 
 public interface UserService {
@@ -67,7 +68,11 @@ public interface UserService {
     				String dataRw,
     				String dataRt,
     				String rw,
-    				String rt) 
+    				String rt,
+    				String familyId) 
     throws UserNotFoundException, EmailExistException, JsonProcessingException;
+    
+    List<ListKeluargaResponse> findFamilyByUser(String username);
+    
 
 }

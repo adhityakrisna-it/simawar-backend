@@ -90,6 +90,13 @@ public class WargaController {
 		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
 	}
 	
+	@GetMapping("/findFamilyByUser")
+	public ResponseEntity<ListKeluargaResponse> findFamilyByUser() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		ListKeluargaResponse response = wargaService.findFamilyByUser(username);
+		return new ResponseEntity<ListKeluargaResponse>(response, HttpStatus.OK);
+	}
+	
 	@GetMapping("/findFamilyMemberByFilter")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
 	public ResponseEntity<List<ListWargaResponse>> findFamilyMemberByFilter(@RequestBody FilterWargaRequest filter) {

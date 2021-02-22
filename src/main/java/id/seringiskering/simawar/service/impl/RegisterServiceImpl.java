@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.seringiskering.simawar.constant.Authority;
 import id.seringiskering.simawar.constant.FileConstant;
+import id.seringiskering.simawar.entity.FamilyUserOwner;
+import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.entity.UserPersil;
@@ -34,6 +36,7 @@ import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRegisterRepository;
@@ -56,17 +59,20 @@ public class RegisterServiceImpl implements RegisterService {
 	private UserRegisterRepository userRegisterRepository;
 	private UserRepository userRepository;
 	private PersilRepository persilRepository;
+	private FamilyUserOwnerRepository familyUserOwnerRepository; 
 	private BCryptPasswordEncoder passwordEncoder;
 
 	@Autowired
 	public RegisterServiceImpl(UserRegisterRepository userRegisterRepository, 
 							   BCryptPasswordEncoder passwordEncoder,
 							   UserRepository userRepository, 
-							   PersilRepository persilRepository) {
+							   PersilRepository persilRepository,
+							   FamilyUserOwnerRepository familyUserOwnerRepository) {
 		this.userRegisterRepository = userRegisterRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.persilRepository = persilRepository;
+		this.familyUserOwnerRepository = familyUserOwnerRepository;
 	}
 
 	@Override
@@ -131,7 +137,8 @@ public class RegisterServiceImpl implements RegisterService {
  				String dataRW,
  				String dataRT,
  				String rw,
- 				String rt) 
+ 				String rt,
+ 				String familyId) 
 				throws JsonProcessingException, UnauthorizedException, DataNotFoundException 
 	{
 		// TODO Auto-generated method stub
@@ -152,7 +159,8 @@ public class RegisterServiceImpl implements RegisterService {
 		userRegisterRepository.save(saveUserRegister);
 		
 		User userNew = new User();
-		userNew.setUserId(generateUserId());
+		String userId = generateUserId(); 
+		userNew.setUserId(userId);
 		userNew.setFirstName(saveUserRegister.getFirstName());
 		userNew.setLastName(saveUserRegister.getLastName());
 		userNew.setUsername(saveUserRegister.getUsername());
@@ -167,13 +175,13 @@ public class RegisterServiceImpl implements RegisterService {
 		Integer iRt;
 		Integer iRw;
 		
-		if (dataRT == null | dataRT.equals("")) {
+		if (dataRT == null || dataRT.equals("")) {
 			iRt = null;
 		} else {
 			iRt = Integer.valueOf(dataRT);
 		}
 		
-		if (dataRW == null | dataRW.equals("")) {
+		if (dataRW == null || dataRW.equals("")) {
 			iRw = null;
 		} else {
 			iRw = Integer.valueOf(dataRW);
@@ -205,6 +213,15 @@ public class RegisterServiceImpl implements RegisterService {
 
 		userNew.setUserPersil(userPersil);
         userRepository.save(userNew);
+        
+        if (familyId != null) {
+        	FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
+        	idowner.setId(Long.parseLong(familyId));
+        	idowner.setUserId(userId);
+        	FamilyUserOwner familyOwner = new FamilyUserOwner();
+        	familyOwner.setId(idowner);
+        	familyUserOwnerRepository.save(familyOwner);
+        }        
         
 	}
 	

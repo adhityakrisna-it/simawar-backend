@@ -57,6 +57,7 @@ import id.seringiskering.simawar.profile.UserProfile;
 import id.seringiskering.simawar.request.user.AdminUpdateUserRequest;
 import id.seringiskering.simawar.request.user.UpdateUserRequest;
 import id.seringiskering.simawar.response.user.UserResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.service.UserService;
 import id.seringiskering.simawar.utility.JWTTokenProvider;
 
@@ -195,6 +196,14 @@ public class UserController {
 		List<User> users = userService.getUsers();
 		return new ResponseEntity<> (users, HttpStatus.OK);
 	}
+	
+	@GetMapping("/findFamilyByUser")
+	@PreAuthorize("hasAnyAuthority('user:update')")
+	public ResponseEntity<List<ListKeluargaResponse>> findFamilyByUser() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListKeluargaResponse> response = userService.findFamilyByUser(username);
+		return new ResponseEntity<> (response, HttpStatus.OK);
+	}
 
 	@GetMapping("/resetPassword/{email}")
 	public ResponseEntity<HttpResponse> resetPassword(@PathVariable("email") String email) throws EmailNotFoundException, MessagingException {
@@ -292,7 +301,8 @@ public class UserController {
 				updateRequest.getDataRw(),
 				updateRequest.getDataRt(),
 				updateRequest.getRw(),
-				updateRequest.getRt());
+				updateRequest.getRt(),
+				updateRequest.getFamilyId());
 		
 		return response(HttpStatus.OK, "User berhasil diupdate");
 		

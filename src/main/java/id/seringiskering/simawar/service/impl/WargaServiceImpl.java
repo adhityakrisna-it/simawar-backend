@@ -47,6 +47,8 @@ import id.seringiskering.simawar.entity.FamilyDeletedPK;
 import id.seringiskering.simawar.entity.FamilyMember;
 import id.seringiskering.simawar.entity.FamilyMemberDeleted;
 import id.seringiskering.simawar.entity.FamilyMemberDeletedPK;
+import id.seringiskering.simawar.entity.FamilyUserOwner;
+import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.Persil;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.InvalidDataException;
@@ -55,6 +57,7 @@ import id.seringiskering.simawar.repository.FamilyDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
 import id.seringiskering.simawar.repository.FamilyRepository;
+import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.warga.FilterWargaRequest;
@@ -87,6 +90,9 @@ public class WargaServiceImpl implements WargaService {
 	
 	@Autowired
 	private FamilyDeletedRepository familyDeletedRepository;
+	
+	@Autowired
+	private FamilyUserOwnerRepository familyUserOwnerRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
@@ -313,7 +319,7 @@ public class WargaServiceImpl implements WargaService {
 	public List<ListKeluargaResponse> findFamily(String username) {
 		// TODO Auto-generated method stub
 
-		List<Family> listFamily = familyRepository.findAll();
+		List<Family> listFamily = familyRepository.findAllByOrderByClusterAscBlokAscNomorAsc(); //.findAll();
 		if (listFamily.size() > 0) {
 
 			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
@@ -371,13 +377,34 @@ public class WargaServiceImpl implements WargaService {
 
 		return item;
 	}
+	
+
+	@Override
+	public ListKeluargaResponse findFamilyByUser(String username) {
+		// TODO Auto-generated method stub
+		User user = userRepository.findUserByUsername(username);
+		
+		FamilyUserOwnerPK id = new FamilyUserOwnerPK();
+		id.setUserId(user.getUserId());
+		Optional<FamilyUserOwner> cekfamily = familyUserOwnerRepository.findById(id);
+		
+		if (cekfamily.isPresent()) {
+			ListKeluargaResponse response = new ListKeluargaResponse();
+			BeanUtils.copyProperties(cekfamily.get(), response);
+			return response;
+		}
+		
+		return null;
+	}	
 
 	@Override
 	@Transactional
 	public void saveKeluarga(String mode, String username, SaveKeluargaRequest request) throws InvalidDataException {
 		// TODO Auto-generated method stub
-		validateDataKeluarga(request.getFamilyName());
 		User user = userRepository.findUserByUsername(username);
+		
+		validateDataKeluarga(request.getFamilyName(), user, mode);
+		
 		Family save = null;
 		if (mode.equals("Add")) {
 			save = new Family();
@@ -430,8 +457,10 @@ public class WargaServiceImpl implements WargaService {
 	public ListKeluargaResponse addKeluarga(String mode, String username, SaveKeluargaRequest request)
 			throws InvalidDataException {
 		// TODO Auto-generated method stub
-		validateDataKeluarga(request.getFamilyName());
 		User user = userRepository.findUserByUsername(username);
+
+		validateDataKeluarga(request.getFamilyName(), user, mode);
+		
 		Family save = null;
 		if (mode.equals("Add")) {
 			save = new Family();
@@ -440,7 +469,7 @@ public class WargaServiceImpl implements WargaService {
 		} else if (mode.equals("Edit")) {
 			Optional<Family> cek = familyRepository.findById(request.getId());
 			save = cek.get();
-			save.setUser1(user);
+			save.setUser3(user);
 			
 			Optional<List<FamilyMember>> resetMember = familyMemberRepository.findByFamilyId(request.getId());
 			if (resetMember.isPresent()) {
@@ -449,7 +478,6 @@ public class WargaServiceImpl implements WargaService {
 					familymember.setFamily(null);
 				}
 			}
-			
 		}
 
 		save.setFamilyName(request.getFamilyName());
@@ -474,9 +502,18 @@ public class WargaServiceImpl implements WargaService {
 				family.setFamily(save);
 			}
 		}
-
+		
 		familyRepository.save(save);
 		
+		if (user.getRole().equals("ROLE_WARGA")) {
+			FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
+			idowner.setId(save.getId());
+			idowner.setUserId(user.getUserId());
+			FamilyUserOwner familyUserOwner = new FamilyUserOwner();
+			familyUserOwner.setId(idowner);
+			familyUserOwnerRepository.save(familyUserOwner);
+		}
+
 		ListKeluargaResponse item = new ListKeluargaResponse();
 		BeanUtils.copyProperties(save, item);  
 		
@@ -687,11 +724,23 @@ public class WargaServiceImpl implements WargaService {
 		}
 	}
 
-	private void validateDataKeluarga(String familyName) throws InvalidDataException {
+	private void validateDataKeluarga(String familyName, User user, String mode) throws InvalidDataException {
 		// TODO Auto-generated method stub
 		if (familyName == null || familyName.trim().equals("")) {
 			throw new InvalidDataException("Nama keluarga tidak tidak boleh kosong");
 		}
+		
+		if (user.getRole().equals("ROLE_WARGA") && mode.equals("Add")) {
+			FamilyUserOwnerPK idfind = new FamilyUserOwnerPK();
+			idfind.setUserId(user.getUserId());
+			Optional<List<FamilyUserOwner>> cekhavefamily = familyUserOwnerRepository.findByIdUserId(user.getUserId());
+			if (cekhavefamily.isPresent()) {
+				throw new InvalidDataException("User sudah pernah input data keluarga");
+			}
+		}
+			
+		
 	}
+
 	
 }

@@ -69,7 +69,8 @@ public class RegisterController {
 											request.getDataRW(),
 											request.getDataRT(),
 											request.getRw(),
-											request.getRt()
+											request.getRt(),
+											request.getFamilyId()
 											);
 		return response(HttpStatus.OK, "Registrasi sudah disetujui");
 	}
