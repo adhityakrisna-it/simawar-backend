@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import id.seringiskering.simawar.constant.Authority;
 import id.seringiskering.simawar.constant.FileConstant;
+import id.seringiskering.simawar.entity.Family;
 import id.seringiskering.simawar.entity.FamilyUserOwner;
 import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.Persil;
@@ -36,6 +37,7 @@ import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.FamilyRepository;
 import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
 import id.seringiskering.simawar.repository.UserPersilRepository;
@@ -43,6 +45,7 @@ import id.seringiskering.simawar.repository.UserRegisterRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
 import id.seringiskering.simawar.response.register.UserRegisterResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.service.RegisterService;
 
 @Service
@@ -59,7 +62,8 @@ public class RegisterServiceImpl implements RegisterService {
 	private UserRegisterRepository userRegisterRepository;
 	private UserRepository userRepository;
 	private PersilRepository persilRepository;
-	private FamilyUserOwnerRepository familyUserOwnerRepository; 
+	private FamilyUserOwnerRepository familyUserOwnerRepository;
+	private FamilyRepository familyRepository;
 	private BCryptPasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -67,12 +71,14 @@ public class RegisterServiceImpl implements RegisterService {
 							   BCryptPasswordEncoder passwordEncoder,
 							   UserRepository userRepository, 
 							   PersilRepository persilRepository,
-							   FamilyUserOwnerRepository familyUserOwnerRepository) {
+							   FamilyUserOwnerRepository familyUserOwnerRepository,
+							   FamilyRepository familyRepository) {
 		this.userRegisterRepository = userRegisterRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.persilRepository = persilRepository;
 		this.familyUserOwnerRepository = familyUserOwnerRepository;
+		this.familyRepository = familyRepository;
 	}
 
 	@Override
@@ -480,5 +486,29 @@ public class RegisterServiceImpl implements RegisterService {
 		
 		return retval;
 	}
+
+	@Override
+	public List<ListKeluargaResponse> findFamilyByUser(String username) {
+		// TODO Auto-generated method stub
+
+		Optional<List<Family>> cekFamily = familyRepository.findByLeftJoinFamilyUser();
+
+		if (cekFamily.isPresent()) {
+			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
+			for (Family family : cekFamily.get()) {
+				ListKeluargaResponse item = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item);
+				String address = family.getCluster().toUpperCase() + " " + family.getBlok().toUpperCase() + " "
+						+ family.getNomor().toUpperCase() + " / RT" + family.getRt() + " RW" + family.getRw();
+				item.setAddress(address);
+				item.setFamilyId(item.getId().toString());
+				listKeluarga.add(item);
+			}
+			return listKeluarga;
+		}
+
+		return null;
+	}
+
 
 }

@@ -26,4 +26,5 @@ public class UserResponse {
     private boolean isNotLocked;
     private UserProfile userDataProfile;
     private UserPersil userPersil;
+    private String familyId; 
 }

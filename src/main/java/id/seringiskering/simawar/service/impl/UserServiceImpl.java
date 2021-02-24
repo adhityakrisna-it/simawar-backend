@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.CheckForNull;
 import javax.mail.MessagingException;
@@ -86,7 +87,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	private UserRepository userRepository;
 	private UserPersilRepository userPersilRepository;
 	private FamilyRepository familyRepository;
-	private FamilyUserOwnerRepository familyUserOwnerRepository; 
+	private FamilyUserOwnerRepository familyUserOwnerRepository;
 
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -230,15 +231,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 	@Override
 	public User updateUser(String username, String newFirstName, String newLastName, String newEmail, String clusterId,
-			String blokId, String blokNumber, String blokIdentity) throws UserNotFoundException, EmailExistException, JsonProcessingException {
+			String blokId, String blokNumber, String blokIdentity)
+			throws UserNotFoundException, EmailExistException, JsonProcessingException {
 		// TODO Auto-generated method stub
 		User currentUser = validateNewEmail(username, newEmail);
 		currentUser.setFirstName(newFirstName);
 		currentUser.setLastName(newLastName);
 		currentUser.setEmail(newEmail);
 		currentUser.setUserDataProfile(
-				getUserProfile(currentUser.getRole(), null, null, null, clusterId, blokId, blokNumber, blokIdentity)
-				);
+				getUserProfile(currentUser.getRole(), null, null, null, clusterId, blokId, blokNumber, blokIdentity));
 		Optional<UserPersil> cekUserPersil = userPersilRepository.findById(currentUser.getUserId());
 		if (cekUserPersil.isEmpty()) {
 			UserPersil userPersil = new UserPersil();
@@ -262,7 +263,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		userRepository.save(currentUser);
 
 		return currentUser;
-		
+
 	}
 
 	@Override
@@ -304,52 +305,61 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		userRepository.save(user);
 		return user;
 	}
-	
+
 	@Override
-	public List<UserResponse> getUsersForEditing(String username) throws DataNotFoundException, JsonMappingException, JsonProcessingException {
+	public List<UserResponse> getUsersForEditing(String username)
+			throws DataNotFoundException, JsonMappingException, JsonProcessingException {
 		// TODO Auto-generated method stub
 		User user = userRepository.findUserByUsername(username);
 		if (user.getRole().equals("ROLE_PENGURUS_RT") && user.getUserDataProfile() != null) {
 			ObjectMapper mapper = new ObjectMapper();
 			UserProfile userprofile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
 
-			Optional<List<User>> listUser = userRepository.queryByRt(StringManipulation.isNull(userprofile.getRt()," "));
-			
+			Optional<List<User>> listUser = userRepository
+					.queryByRt(StringManipulation.isNull(userprofile.getRt(), " "));
+
 			if (!listUser.isPresent()) {
 				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
 			}
-			
+
 			List<UserResponse> userResponse = new ArrayList<UserResponse>();
-			
-			if (listUser.get().size() >0) {
+
+			if (listUser.get().size() > 0) {
 				for (User userlist : listUser.get()) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
-					
+
 					ObjectMapper mapper3 = new ObjectMapper();
 					UserProfile userProfile = mapper3.readValue(userlist.getUserDataProfile(), UserProfile.class);
 					usercopy.setUserDataProfile(userProfile);
 
+					if (userlist.getFamilyUserOwners() != null) {
+						Set<FamilyUserOwner> listfamilyuserowner = userlist.getFamilyUserOwners();
+						for (FamilyUserOwner owner : listfamilyuserowner) {
+							usercopy.setFamilyId(owner.getId().getId().toString());
+						}
+					}
+
 					userResponse.add(usercopy);
-					
+
 				}
 			}
-			
+
 			return userResponse;
-			
+
 		} else if (user.getRole().equals("ROLE_PENGURUS_RW") && user.getUserDataProfile() != null) {
 			ObjectMapper mapper = new ObjectMapper();
 			UserProfile userprofile = mapper.readValue(user.getUserDataProfile(), UserProfile.class);
-			
+
 			Optional<List<User>> listUser = userRepository.queryByRw(userprofile.getRw());
-			
+
 			if (!listUser.isPresent()) {
 				throw new DataNotFoundException(DATA_USER_TIDAK_DITEMUKAN);
 			}
-			
+
 			List<UserResponse> userResponse = new ArrayList<UserResponse>();
-			
-			if (listUser.get().size() >0) {
+
+			if (listUser.get().size() > 0) {
 				for (User userlist : listUser.get()) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
@@ -358,38 +368,54 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 					UserProfile userProfile = mapper2.readValue(userlist.getUserDataProfile(), UserProfile.class);
 					usercopy.setUserDataProfile(userProfile);
 
+					if (userlist.getFamilyUserOwners() != null) {
+						Set<FamilyUserOwner> listfamilyuserowner = userlist.getFamilyUserOwners();
+						for (FamilyUserOwner owner : listfamilyuserowner) {
+							usercopy.setFamilyId(owner.getId().getId().toString());
+						}
+					}
+
 					userResponse.add(usercopy);
-					
+
 				}
 			}
-			
+
 			return userResponse;
-			
-		}else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
+
+		} else if (user.getRole().equals("ROLE_SUPER_ADMIN")) {
 			List<User> listUser = userRepository.findAll();
 			List<UserResponse> userResponse = new ArrayList<UserResponse>();
-			
-			if (listUser.size() >0) {
+
+			if (listUser.size() > 0) {
 				for (User userlist : listUser) {
 					UserResponse usercopy = new UserResponse();
 					BeanUtils.copyProperties(userlist, usercopy);
-					
+
 					ObjectMapper mapper = new ObjectMapper();
 					if (userlist.getUserDataProfile() != null) {
 						UserProfile userProfile = mapper.readValue(userlist.getUserDataProfile(), UserProfile.class);
 						usercopy.setUserDataProfile(userProfile);
-						
+
+						if (userlist.getFamilyUserOwners() != null) {
+							// List<FamilyUserOwner> listfamilyuserowner = (List<FamilyUserOwner>)
+							// userlist.getFamilyUserOwners();
+							Set<FamilyUserOwner> listfamilyuserowner = userlist.getFamilyUserOwners();
+							for (FamilyUserOwner owner : listfamilyuserowner) {
+								usercopy.setFamilyId(owner.getId().getId().toString());
+							}
+						}
+
 					}
 					userResponse.add(usercopy);
 				}
 			}
-			
+
 			return userResponse;
-			
+
 		}
 
 		return null;
-	}	
+	}
 
 	private String getTemporaryProfileImageUrl(String username) {
 		// TODO Auto-generated method stub
@@ -475,25 +501,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		// TODO Auto-generated method stub
 		return userRepository.findUserByEmail(email);
 	}
-	
+
 	@Override
-	public void updateUser(String username,
-			String editedUsername,
-			String newFirstName, 
-			String newLastName, 
-			String newEmail, 
-			String role, 
-			boolean isNonLocked, 
-			boolean isActive, 
-			String newPassword, 
-			String clusterId,
-			String blokId, 
-			String blokNumber, 
-			String blokIdentity,
-			String dataRw,
-			String dataRt,
-			String rw,
-			String rt,
+	public void updateUser(String username, String editedUsername, String newFirstName, String newLastName,
+			String newEmail, String role, boolean isNonLocked, boolean isActive, String newPassword, String clusterId,
+			String blokId, String blokNumber, String blokIdentity, String dataRw, String dataRt, String rw, String rt,
 			String familyId) throws UserNotFoundException, EmailExistException, JsonProcessingException {
 		// TODO Auto-generated method stub
 
@@ -505,18 +517,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		currentUser.setActive(isActive);
 		currentUser.setNotLocked(isNonLocked);
 		currentUser.setAuthorities(getRoleEnumName(role).getAuthorities());
-		
-		Integer iRt = (dataRt==null) ? null : Integer.valueOf(dataRt);
-		Integer iRw = (dataRw==null) ? null : Integer.valueOf(dataRw);
-		
+
+		Integer iRt = (dataRt == null) ? null : Integer.valueOf(dataRt);
+		Integer iRw = (dataRw == null) ? null : Integer.valueOf(dataRw);
+
 		currentUser.setUserDataProfile(
-				getUserProfile(currentUser.getRole(), iRt, iRw, null, clusterId, blokId, blokNumber, blokIdentity)
-				);
-		
+				getUserProfile(currentUser.getRole(), iRt, iRw, null, clusterId, blokId, blokNumber, blokIdentity));
+
 		if (!newPassword.equals("")) {
 			currentUser.setPassword(encodePassword(newPassword));
 		}
-		
+
 		Optional<UserPersil> cekUserPersil = userPersilRepository.findById(currentUser.getUserId());
 		if (cekUserPersil.isEmpty()) {
 			UserPersil userPersil = new UserPersil();
@@ -542,46 +553,91 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			currentUser.setUserPersil(userPersil);
 		}
 		userRepository.save(currentUser);
-		
-		Optional<List<FamilyUserOwner>> cekfamilyowner = familyUserOwnerRepository.findByIdUserId(currentUser.getUserId());
+
+		Optional<List<FamilyUserOwner>> cekfamilyowner = familyUserOwnerRepository
+				.findByIdUserId(currentUser.getUserId());
 		if (cekfamilyowner.isPresent()) {
-			for (FamilyUserOwner familyOwner: cekfamilyowner.get()) {
+			for (FamilyUserOwner familyOwner : cekfamilyowner.get()) {
 				familyUserOwnerRepository.delete(familyOwner);
 			}
 		}
-		
+
 		if (familyId != null) {
-        	FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
-        	idowner.setId(Long.parseLong(familyId));
-        	idowner.setUserId(currentUser.getUserId());
-        	FamilyUserOwner familyOwner = new FamilyUserOwner();
-        	familyOwner.setId(idowner);
-        	familyUserOwnerRepository.save(familyOwner);
+			FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
+			idowner.setId(Long.parseLong(familyId));
+			idowner.setUserId(currentUser.getUserId());
+			FamilyUserOwner familyOwner = new FamilyUserOwner();
+			familyOwner.setId(idowner);
+			familyUserOwnerRepository.save(familyOwner);
 		}
-		
+
 		return;
-	}	
-	
+	}
 
 	@Override
 	public List<ListKeluargaResponse> findFamilyByUser(String username) {
 		// TODO Auto-generated method stub
-		
+		User user = userRepository.findUserByUsername(username);
+		List<Family> cekFamily = familyRepository.findAll();
+
+		if (cekFamily.size()>0) {
+			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
+			for (Family family : cekFamily) {
+				ListKeluargaResponse item = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item);
+				String address = family.getCluster().toUpperCase() + " " + family.getBlok().toUpperCase() + " "
+						+ family.getNomor().toUpperCase() + " / RT" + family.getRt() + " RW" + family.getRw();
+				item.setAddress(address);
+				item.setFamilyId(item.getId().toString());
+				listKeluarga.add(item);
+			}
+
+			return listKeluarga;
+			
+		}
+
+		return null;
+	}
+	
+	private List<ListKeluargaResponse> findFamilyByUser2(String username) {
+		// TODO Auto-generated method stub
+		User user = userRepository.findUserByUsername(username);
 		Optional<List<Family>> cekFamily = familyRepository.findByLeftJoinFamilyUser();
-		
+
 		if (cekFamily.isPresent()) {
 			List<ListKeluargaResponse> listKeluarga = new ArrayList<ListKeluargaResponse>();
 			for (Family family : cekFamily.get()) {
 				ListKeluargaResponse item = new ListKeluargaResponse();
 				BeanUtils.copyProperties(family, item);
+				String address = family.getCluster().toUpperCase() + " " + family.getBlok().toUpperCase() + " "
+						+ family.getNomor().toUpperCase() + " / RT" + family.getRt() + " RW" + family.getRw();
+				item.setAddress(address);
+				item.setFamilyId(item.getId().toString());
 				listKeluarga.add(item);
 			}
+
+			FamilyUserOwnerPK id = new FamilyUserOwnerPK();
+			id.setUserId(user.getUserId());
+			Optional<FamilyUserOwner> cekfamily2 = familyUserOwnerRepository.findById(id);
+			if (cekfamily2.isPresent()) {
+				
+				Family family = cekfamily2.get().getFamily();
+				
+				ListKeluargaResponse item2 = new ListKeluargaResponse();
+				BeanUtils.copyProperties(family, item2);
+				String address = family.getCluster().toUpperCase() + " " + family.getBlok().toUpperCase() + " "
+						+ family.getNomor().toUpperCase() + " / RT" + family.getRt() + " RW" + family.getRw();
+				item2.setAddress(address);
+				item2.setFamilyId(item2.getId().toString());
+				listKeluarga.add(item2);
+
+			}
+
 			return listKeluarga;
 		}
-		
+
 		return null;
 	}
-	
 
 	private void saveProfileImage(User user, MultipartFile profileImage) throws IOException, NotAnImageFileException {
 		// TODO Auto-generated method stub

@@ -11,6 +11,7 @@ import id.seringiskering.simawar.exception.domain.UnauthorizedException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
 import id.seringiskering.simawar.response.register.UserRegisterResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 
 public interface RegisterService {
 	
@@ -33,5 +34,6 @@ public interface RegisterService {
 			 				) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
 	
 	void disapproveUserRegister(String username, Long id) throws JsonProcessingException, UnauthorizedException, DataNotFoundException;
-
+	List<ListKeluargaResponse> findFamilyByUser(String username);
+	
 }

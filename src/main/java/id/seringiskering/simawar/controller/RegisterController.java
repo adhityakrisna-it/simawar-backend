@@ -31,6 +31,7 @@ import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.request.registrasi.UserApprovalRequest;
 import id.seringiskering.simawar.request.registrasi.UserRegistrationRequest;
 import id.seringiskering.simawar.response.register.UserRegisterResponse;
+import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.service.RegisterService;
 
 @RestController
@@ -93,6 +94,14 @@ public class RegisterController {
 		return new ResponseEntity<> (userRegister, HttpStatus.OK);
 		
 		
+	}
+	
+	@GetMapping("/findFamilyByUser")
+	@PreAuthorize("hasAnyAuthority('user:update')")
+	public ResponseEntity<List<ListKeluargaResponse>> findFamilyByUser() {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		List<ListKeluargaResponse> response = registerService.findFamilyByUser(username);
+		return new ResponseEntity<> (response, HttpStatus.OK);
 	}
 	
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {

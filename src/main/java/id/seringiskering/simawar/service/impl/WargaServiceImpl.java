@@ -202,7 +202,6 @@ public class WargaServiceImpl implements WargaService {
 			MultipartFile fotoKtp, MultipartFile fotoKK)
 			throws InvalidDataException, IOException, NotAnImageFileException {
 		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
 
 		validateDataWarga(request.getNoKtp());
 
@@ -494,12 +493,14 @@ public class WargaServiceImpl implements WargaService {
 			save.setBlok(persilcek.get().getBlokId());
 			save.setNomor(String.valueOf(persilcek.get().getBlokNumber()));
 		}
-
-		if (request.getFamilyMemberId().size() > 0) {
-			for (String id : request.getFamilyMemberId()) {
-				Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
-				FamilyMember family = cekFamily.get();
-				family.setFamily(save);
+		
+		if (request.getFamilyMemberId()!=null) {
+			if (request.getFamilyMemberId().size() > 0) {
+				for (String id : request.getFamilyMemberId()) {
+					Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
+					FamilyMember family = cekFamily.get();
+					family.setFamily(save);
+				}
 			}
 		}
 		

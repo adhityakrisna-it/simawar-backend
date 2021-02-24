@@ -25,4 +25,5 @@ public class ListKeluargaResponse {
 	private List<ListWargaResponse> familyMember;
 	private String familyProfileUrl;
 	private String greeting;
+	private String familyId;
 }

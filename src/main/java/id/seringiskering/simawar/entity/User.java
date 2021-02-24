@@ -89,5 +89,9 @@ public class User {
 	//bi-directional many-to-one association to FamilyMember
 	@OneToMany(mappedBy="user2")
 	private Set<FamilyMember> familyMembers2;
+	
+	//bi-directional many-to-one association to FamilyUserOwner
+	@OneToMany(mappedBy="user")
+	private Set<FamilyUserOwner> familyUserOwners;
 
 }
