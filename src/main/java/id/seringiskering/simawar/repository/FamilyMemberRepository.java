@@ -33,4 +33,8 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMember, Long
 	
 	Optional<List<FamilyMember>> findByFamilyIdOrderByKedudukanAscBirthDateAsc(Long id);
 	
+	@Query("SELECT a from FamilyMember a INNER JOIN FamilyMemberUserOwner b "
+			+ "ON a.id=b.id.id where b.id.userId=:userId")
+	Optional<List<FamilyMember>> findByUserIdOrderByFamilyName(String userId);
+	
 }

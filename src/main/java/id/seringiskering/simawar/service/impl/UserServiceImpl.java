@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.CheckForNull;
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 
@@ -50,11 +49,12 @@ import id.seringiskering.simawar.constant.UserImplConstant;
 import id.seringiskering.simawar.domain.UserPrincipal;
 import id.seringiskering.simawar.entity.Family;
 import id.seringiskering.simawar.entity.FamilyMember;
+import id.seringiskering.simawar.entity.FamilyMemberUserOwner;
+import id.seringiskering.simawar.entity.FamilyMemberUserOwnerPK;
 import id.seringiskering.simawar.entity.FamilyUserOwner;
 import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.entity.UserPersil;
-import id.seringiskering.simawar.entity.UserRegister;
 import id.seringiskering.simawar.enumeration.Role;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
@@ -64,13 +64,13 @@ import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.function.StringManipulation;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.FamilyMemberUserOwnerRepository;
 import id.seringiskering.simawar.repository.FamilyRepository;
 import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
-import id.seringiskering.simawar.response.warga.ListWargaResponse;
 import id.seringiskering.simawar.service.EmailService;
 import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
@@ -88,6 +88,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	private UserPersilRepository userPersilRepository;
 	private FamilyRepository familyRepository;
 	private FamilyUserOwnerRepository familyUserOwnerRepository;
+	private FamilyMemberUserOwnerRepository familyMemberUserOwnerRepository;
 
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -99,7 +100,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
 			LoginAttemptService loginAttemptService, EmailService emailService,
 			UserPersilRepository userPersilRepository, FamilyRepository familyRepository,
-			FamilyUserOwnerRepository familyUserOwnerRepository) {
+			FamilyUserOwnerRepository familyUserOwnerRepository,
+			FamilyMemberUserOwnerRepository familyMemberUserOwnerRepository) {
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.loginAttemptService = loginAttemptService;
@@ -107,6 +109,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		this.userPersilRepository = userPersilRepository;
 		this.familyRepository = familyRepository;
 		this.familyUserOwnerRepository = familyUserOwnerRepository;
+		this.familyMemberUserOwnerRepository = familyMemberUserOwnerRepository; 
 	}
 
 	@Override
@@ -561,6 +564,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 				familyUserOwnerRepository.delete(familyOwner);
 			}
 		}
+		
+		Optional<List<FamilyMemberUserOwner>> cekmemberowner = familyMemberUserOwnerRepository.findByIdUserId(currentUser.getUserId());
+		if (cekmemberowner.isPresent()) {
+			for (FamilyMemberUserOwner owner: cekmemberowner.get()) {
+				familyMemberUserOwnerRepository.delete(owner);
+			}
+		}
 
 		if (familyId != null) {
 			FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
@@ -569,6 +579,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 			FamilyUserOwner familyOwner = new FamilyUserOwner();
 			familyOwner.setId(idowner);
 			familyUserOwnerRepository.save(familyOwner);
+			
+        	Optional<Family> cekfamily = familyRepository.findById(Long.parseLong(familyId));
+        	if (cekfamily.isPresent()) {
+        		if (cekfamily.get().getFamilyMembers() != null) {
+        			for (FamilyMember familymember: cekfamily.get().getFamilyMembers()) {
+        				
+        				FamilyMemberUserOwnerPK pk = new FamilyMemberUserOwnerPK();
+        				pk.setId(familymember.getId());
+        				pk.setUserId(currentUser.getUserId());
+        				
+        				FamilyMemberUserOwner familymemberowner = new FamilyMemberUserOwner();
+        				familymemberowner.setId(pk);
+        				familyMemberUserOwnerRepository.save(familymemberowner);
+        			}
+        		}
+        	}			
 		}
 
 		return;

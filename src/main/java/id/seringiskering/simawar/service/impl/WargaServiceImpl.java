@@ -47,6 +47,8 @@ import id.seringiskering.simawar.entity.FamilyDeletedPK;
 import id.seringiskering.simawar.entity.FamilyMember;
 import id.seringiskering.simawar.entity.FamilyMemberDeleted;
 import id.seringiskering.simawar.entity.FamilyMemberDeletedPK;
+import id.seringiskering.simawar.entity.FamilyMemberUserOwner;
+import id.seringiskering.simawar.entity.FamilyMemberUserOwnerPK;
 import id.seringiskering.simawar.entity.FamilyUserOwner;
 import id.seringiskering.simawar.entity.FamilyUserOwnerPK;
 import id.seringiskering.simawar.entity.Persil;
@@ -56,6 +58,7 @@ import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.repository.FamilyDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberDeletedRepository;
 import id.seringiskering.simawar.repository.FamilyMemberRepository;
+import id.seringiskering.simawar.repository.FamilyMemberUserOwnerRepository;
 import id.seringiskering.simawar.repository.FamilyRepository;
 import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.PersilRepository;
@@ -93,12 +96,34 @@ public class WargaServiceImpl implements WargaService {
 	
 	@Autowired
 	private FamilyUserOwnerRepository familyUserOwnerRepository;
+	
+	@Autowired
+	private FamilyMemberUserOwnerRepository familyMemberUserOwnerRepository;
 
 	@Override
 	public List<ListWargaResponse> findFamilyMember(String username) {
 		// TODO Auto-generated method stub
-
-		List<FamilyMember> familyMember = familyMemberRepository.findAll();
+		
+		User user = userRepository.findUserByUsername(username);
+		
+		List<FamilyMember> familyMember = null;
+		
+		if (user.getRole().equals("ROLE_SUPER_ADMIN") || 
+				user.getRole().equals("ROLE_ADMIN") || 
+				user.getRole().equals("ROLE_PENGURUS_RT") || 
+				user.getRole().equals("ROLE_PENGURUS_RW" )) 
+		{
+			familyMember = familyMemberRepository.findAll();
+		}
+		
+		if (user.getRole().equals("ROLE_WARGA" )) {
+			Optional<List<FamilyMember>> cekfamilymember = familyMemberRepository.findByUserIdOrderByFamilyName(user.getUserId());
+			if (cekfamilymember.isPresent()) {
+				familyMember = cekfamilymember.get();
+			} else {
+				return null;
+			}			
+		}
 
 		if (familyMember.size() > 0) {
 			List<ListWargaResponse> listWarga = new ArrayList<ListWargaResponse>();
@@ -193,6 +218,17 @@ public class WargaServiceImpl implements WargaService {
 		}
 
 		familyMemberRepository.save(saveWarga);
+		
+		if (user.getRole().equals("ROLE_WARGA")) {
+			FamilyMemberUserOwnerPK pk = new FamilyMemberUserOwnerPK();
+			pk.setId(saveWarga.getId());
+			pk.setUserId(user.getUserId());
+			
+			FamilyMemberUserOwner familymemberowner = new FamilyMemberUserOwner();
+			familymemberowner.setId(pk);
+			familyMemberUserOwnerRepository.save(familymemberowner);
+			
+		}
 
 	}	
 
@@ -254,6 +290,17 @@ public class WargaServiceImpl implements WargaService {
 		}
 
 		FamilyMember result = familyMemberRepository.save(saveWarga);
+		
+		if(user.getRole().equals("ROLE_WARGA")) {
+			FamilyMemberUserOwnerPK pk = new FamilyMemberUserOwnerPK();
+			pk.setId(result.getId());
+			pk.setUserId(user.getUserId());
+			
+			FamilyMemberUserOwner familymemberowner = new FamilyMemberUserOwner();
+			familymemberowner.setId(pk);
+			familyMemberUserOwnerRepository.save(familymemberowner);
+			
+		}
 		
 		ListWargaResponse response = new ListWargaResponse();
 		BeanUtils.copyProperties(result, response);
@@ -448,6 +495,38 @@ public class WargaServiceImpl implements WargaService {
 		}
 
 		familyRepository.save(save);
+		
+		/***
+		 * Cek apakah keluarga tersebut adalah punya si user
+		 */
+		FamilyUserOwnerPK pkcekowner = new FamilyUserOwnerPK();
+		pkcekowner.setId(request.getId());
+		pkcekowner.setUserId(user.getUserId());
+		Optional<FamilyUserOwner> cekowner = familyUserOwnerRepository.findById(pkcekowner);
+		if (cekowner.isPresent()) {
+			FamilyMemberUserOwnerPK membercekowner = new FamilyMemberUserOwnerPK();
+			membercekowner.setUserId(user.getUserId());
+			Optional<List<FamilyMemberUserOwner>>  cekfamilymember = familyMemberUserOwnerRepository.findByIdUserId(user.getUserId());
+			if (cekfamilymember.isPresent()) {
+				for (FamilyMemberUserOwner ownerdelet: cekfamilymember.get()) {
+					familyMemberUserOwnerRepository.delete(ownerdelet);
+				}
+			}
+
+			if (request.getFamilyMemberId().size() > 0) {
+				for (String id : request.getFamilyMemberId()) {
+					Optional<FamilyMember> cekFamily = familyMemberRepository.findById(Long.valueOf(id));
+					FamilyMember family = cekFamily.get();
+					FamilyMemberUserOwnerPK newmemberuserownerpk = new FamilyMemberUserOwnerPK();
+					newmemberuserownerpk.setId(family.getId());
+					newmemberuserownerpk.setUserId(user.getUserId());
+					FamilyMemberUserOwner newmemberuserowner = new FamilyMemberUserOwner();
+					newmemberuserowner.setId(newmemberuserownerpk);
+					familyMemberUserOwnerRepository.save(newmemberuserowner);
+				}
+			}
+			
+		}		
 
 	}
 	
@@ -507,6 +586,13 @@ public class WargaServiceImpl implements WargaService {
 		familyRepository.save(save);
 		
 		if (user.getRole().equals("ROLE_WARGA")) {
+			Optional<List<FamilyUserOwner>> cekownership = familyUserOwnerRepository.findByIdUserId(user.getUserId());
+			if (cekownership.isPresent()) {
+				for (FamilyUserOwner ownerresult: cekownership.get()) {
+					familyUserOwnerRepository.delete(ownerresult);
+				}
+			}
+
 			FamilyUserOwnerPK idowner = new FamilyUserOwnerPK();
 			idowner.setId(save.getId());
 			idowner.setUserId(user.getUserId());

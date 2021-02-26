@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.seringiskering.simawar.constant.FileConstant;
 import id.seringiskering.simawar.domain.HttpResponse;
 import id.seringiskering.simawar.domain.UserPrincipal;
+import id.seringiskering.simawar.entity.FamilyUserOwner;
 import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
@@ -90,6 +91,12 @@ public class UserController {
 		User loginUser = userService.findUserByUsername(user.getUsername());
 		UserResponse userResponse = new UserResponse();
 		BeanUtils.copyProperties(loginUser, userResponse);
+		
+		if (loginUser.getFamilyUserOwners()!=null) {
+			for (FamilyUserOwner owner : loginUser.getFamilyUserOwners()) {
+				userResponse.setFamilyId(owner.getId().getId().toString());
+			}
+		}
 		
 		ObjectMapper mapper = new ObjectMapper();
 		UserProfile userProfile = mapper.readValue(loginUser.getUserDataProfile(), UserProfile.class);
