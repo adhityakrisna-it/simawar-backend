@@ -50,12 +50,15 @@ import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
+import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
 import id.seringiskering.simawar.filter.JwtAuthorizationFilter;
 import id.seringiskering.simawar.profile.UserProfile;
+import id.seringiskering.simawar.repository.UserRepository;
 import id.seringiskering.simawar.request.user.AdminUpdateUserRequest;
+import id.seringiskering.simawar.request.user.ChangePasswordRequest;
 import id.seringiskering.simawar.request.user.UpdateUserRequest;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
@@ -313,6 +316,13 @@ public class UserController {
 		
 		return response(HttpStatus.OK, "User berhasil diupdate");
 		
+	}
+	
+	@PostMapping("/changePassword")
+	public ResponseEntity<HttpResponse> changePassword(@RequestBody ChangePasswordRequest request) throws InvalidDataException {
+		String username = jwtAuthorizationFilter.getValidUsername();
+		userService.changePassword(username, request);
+		return response(HttpStatus.OK, "Password berhasil diubah");
 	}
 
 	private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {

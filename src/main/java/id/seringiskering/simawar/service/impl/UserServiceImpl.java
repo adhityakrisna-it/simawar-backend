@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.mail.MessagingException;
-import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +37,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,6 +59,7 @@ import id.seringiskering.simawar.enumeration.Role;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
+import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
@@ -69,6 +70,7 @@ import id.seringiskering.simawar.repository.FamilyRepository;
 import id.seringiskering.simawar.repository.FamilyUserOwnerRepository;
 import id.seringiskering.simawar.repository.UserPersilRepository;
 import id.seringiskering.simawar.repository.UserRepository;
+import id.seringiskering.simawar.request.user.ChangePasswordRequest;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 import id.seringiskering.simawar.service.EmailService;
@@ -76,7 +78,6 @@ import id.seringiskering.simawar.service.LoginAttemptService;
 import id.seringiskering.simawar.service.UserService;
 
 @Service
-@Transactional
 @Qualifier("userDetailsService")
 public class UserServiceImpl implements UserService, UserDetailsService {
 
@@ -144,6 +145,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User register(String firstName, String lastName, String username, String email) throws UserNotFoundException,
 			UsernameExistException, EmailExistException, MessagingException, JsonProcessingException {
 		// TODO Auto-generated method stub
@@ -189,6 +191,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User addNewUser(String firstName, String lastName, String username, String email, String role,
 			boolean isNonLocked, boolean isActive, MultipartFile profileImage) throws UserNotFoundException,
 			UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
@@ -214,6 +217,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User updateUser(String currentUsername, String newFirstName, String newLastName, String newUsername,
 			String newEmail, String role, boolean isNonLocked, boolean isActive, MultipartFile profileImage)
 			throws UserNotFoundException, UsernameExistException, EmailExistException, IOException,
@@ -233,6 +237,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User updateUser(String username, String newFirstName, String newLastName, String newEmail, String clusterId,
 			String blokId, String blokNumber, String blokIdentity)
 			throws UserNotFoundException, EmailExistException, JsonProcessingException {
@@ -270,6 +275,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public void deleteUser(String username) {
 		// TODO Auto-generated method stub
 		// userRepository.deleteById(id);
@@ -278,6 +284,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public void resetPassword(String email) throws EmailNotFoundException, MessagingException {
 		// TODO Auto-generated method stub
 		User user = userRepository.findUserByEmail(email);
@@ -291,6 +298,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User updateProfileImage(String username, MultipartFile profileImage) throws UserNotFoundException,
 			UsernameExistException, EmailExistException, IOException, NotAnImageFileException {
 		// TODO Auto-generated method stub
@@ -300,6 +308,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public User updateUserRole(String username, String role) {
 		// TODO Auto-generated method stub
 		User user = userRepository.findUserByUsername(username);
@@ -506,6 +515,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 	}
 
 	@Override
+	@Transactional
 	public void updateUser(String username, String editedUsername, String newFirstName, String newLastName,
 			String newEmail, String role, boolean isNonLocked, boolean isActive, String newPassword, String clusterId,
 			String blokId, String blokNumber, String blokIdentity, String dataRw, String dataRt, String rw, String rt,
@@ -623,6 +633,28 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 		}
 
 		return null;
+	}
+	
+
+	@Override
+	@Transactional
+	public void changePassword(String username, ChangePasswordRequest request) throws InvalidDataException {
+		// TODO Auto-generated method stub
+		if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+			throw new InvalidDataException("Password tidak sama dengan konfirmasi");
+		}
+		
+		User user = findUserByUsername(username);
+		
+		String encodeNewPass = encodePassword(request.getNewPassword());
+		String encodeOldPass = encodePassword(request.getOldPassword());
+		if (!user.getPassword().equals(encodeOldPass)) {
+			throw new InvalidDataException("Password lama invalid");
+		}
+		
+		user.setPassword(encodeNewPass);
+		userRepository.save(user);		
+		
 	}
 	
 	private List<ListKeluargaResponse> findFamilyByUser2(String username) {
@@ -743,5 +775,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
 		return jsonProfile;
 	}
+
 
 }

@@ -14,9 +14,11 @@ import id.seringiskering.simawar.entity.User;
 import id.seringiskering.simawar.exception.domain.DataNotFoundException;
 import id.seringiskering.simawar.exception.domain.EmailExistException;
 import id.seringiskering.simawar.exception.domain.EmailNotFoundException;
+import id.seringiskering.simawar.exception.domain.InvalidDataException;
 import id.seringiskering.simawar.exception.domain.NotAnImageFileException;
 import id.seringiskering.simawar.exception.domain.UserNotFoundException;
 import id.seringiskering.simawar.exception.domain.UsernameExistException;
+import id.seringiskering.simawar.request.user.ChangePasswordRequest;
 import id.seringiskering.simawar.response.user.UserResponse;
 import id.seringiskering.simawar.response.warga.ListKeluargaResponse;
 
@@ -74,5 +76,6 @@ public interface UserService {
     
     List<ListKeluargaResponse> findFamilyByUser(String username);
     
-
+    void changePassword(String username, ChangePasswordRequest request) throws InvalidDataException;
+    
 }

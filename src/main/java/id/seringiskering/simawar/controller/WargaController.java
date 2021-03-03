@@ -141,21 +141,13 @@ public class WargaController {
 		return response(HttpStatus.OK,"Data warga berhasil disimpan");
 	}	
 	
-	@DeleteMapping("/deleteWarga/{id}")
-	@PreAuthorize("hasAnyAuthority('warga:update')")
-	public ResponseEntity<HttpResponse> deleteWarga(@PathVariable(name = "id") String id) {
-		String username  = jwtAuthorizationFilter.getValidUsername();
-		wargaService.deleteDataWarga(username, Long.parseLong(id));
-		return response(HttpStatus.OK,"Data warga berhasil dihapus");
-	}
-	
 	@DeleteMapping("/deleteKeluarga/{id}")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
 	public ResponseEntity<HttpResponse> deleteKeluarga(@PathVariable(name = "id") String id) {
 		String username  = jwtAuthorizationFilter.getValidUsername();
 		wargaService.deleteDataKeluarga(username, Long.parseLong(id));
 		return response(HttpStatus.OK,"Data keluarga berhasil dihapus");
-	}
+	}	
 	
 	@PostMapping("/updateWarga")
 	@PreAuthorize("hasAnyAuthority('warga:update')")
@@ -282,7 +274,15 @@ public class WargaController {
 		
 		ListWargaResponse response = wargaService.saveWarga("Add", username, request, fotoProfile, fotoKtp, fotoKK);
 		return new ResponseEntity<ListWargaResponse>(response, HttpStatus.OK);
-	}	
+	}
+	
+	@DeleteMapping("/deleteWarga/{id}")
+	@PreAuthorize("hasAnyAuthority('warga:update')")
+	public ResponseEntity<HttpResponse> deleteWarga(@PathVariable(name = "id") String id) {
+		String username  = jwtAuthorizationFilter.getValidUsername();
+		wargaService.deleteDataWarga(username, Long.parseLong(id));
+		return response(HttpStatus.OK,"Data warga berhasil dihapus");
+	}
 
 	@GetMapping(path = "/data/profile/{noktp}", produces = MediaType.IMAGE_JPEG_VALUE)
 	@PreAuthorize("hasAnyAuthority('warga:update')")
